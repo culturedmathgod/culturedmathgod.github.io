@@ -1,0 +1,341 @@
+@font-face {
+    font-family: customFont;
+    src: url('WorkSans-Regular.ttf');
+}
+
+.heading {
+    padding: 10px;
+    height: 40px;
+    margin: 10px;
+    font-family: customFont;
+    font-size: 30px;
+    color: white;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.top_container {
+    display: grid;
+    grid-template-columns: 400px 600px 400px;
+    justify-content: space-between;
+}
+
+/* Top Container is split into the main table, a swappable section for extra hands and the solver and graph of your progress*/
+
+.table_container {
+    margin: 0px;
+    padding: 10px;
+    background-color: #1e1e54;
+    font-family: customFont;
+    width: 400px;
+    position: relative;
+}
+
+.table_container::before,
+.table_container::after {
+    position: absolute;
+    right: 200%;
+    transform: translateX(-50%) translateY(-100%) scale(0,0);
+    transform-origin: top center;
+    opacity: 0.5;
+}
+
+.table_container::before {
+    content: attr(data-tooltip);
+    color: white;
+    padding: 0.5rem;
+    text-align: center;
+    width: max-content;
+    background: black;
+}
+
+.table_container:hover::before {
+    transform: scale(1,1);
+}
+
+td:nth-child(1) {
+    width: 200px;
+    text-align: left;
+}
+
+td:nth-child(2) {
+    width: 100px;
+    text-align: right;
+}
+
+td:nth-child(3) {
+    width: 50px;
+    text-align: right;
+}
+
+td:nth-child(4) {
+    width: 50px;
+    text-align: center;
+    visibility: hidden;
+}
+
+td {
+    color: white;
+    height: 20px
+}
+
+.solver_section {
+    margin: 0px;
+    padding: 0px;
+    grid-template-rows: repeat(3, 1fr);
+    grid-template-columns: 9fr 1fr;
+}
+
+.chart_container {
+    height: 300px;
+    width: 600px;
+}
+
+.solver_hand {
+    display: grid;
+    grid-template-columns: repeat(11, 55px);
+    font-size: 12px;
+    justify-content: center;
+    align-items: center;
+}
+
+.EVtitle {
+    font-family: customFont;
+    color: white;
+    font-weight: bold;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+}
+
+.EVvalue {
+    font-family: customFont;
+    color: white;
+    font-style: italic;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+}
+
+.graph_container {
+    padding: 0px;
+    margin: 0px;
+}
+
+.hands {
+    margin: 10px;
+    height: 40px;
+    width: 60px;
+}
+
+body {
+    margin: 0;
+    background-color: #1e1e54;
+    grid-template-rows: 325px 200px;
+    gap: 0;
+    cursor: pointer;
+}
+
+/* Main Hand */
+
+.game_area {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+}
+
+.main_hand {
+    display: grid;
+    margin: 10px;
+    padding: 40px;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 1px 170px;
+    border-radius: 7rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.slot {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+}
+
+.hand_type {
+    grid-column: 1/6;
+    padding: 0px;
+    margin: 0px;
+    font-family: customFont;
+    font-size: 20px;
+    color: white;
+    border-radius: 5em;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    top: -20px;
+}
+
+.card {
+    margin: 0;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    gap: 0;
+    height: 160px;
+    width: 110px;
+    border-radius: 1rem;
+    font-size: 3rem;
+    background:white;
+    user-select: none;
+    font-family: "customFont";
+    justify-content: center;
+}
+
+.unclickable {
+    pointer-events: none;
+}
+
+/* Extra Hands */
+
+.extra_hand_area {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    grid-template-columns: repeat(2, 1fr);
+    margin: auto;
+}
+
+.extra_hand {
+    padding: 0px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 20px 60px;
+    width: 250px;
+    justify-content: center;
+    align-items: center;
+}
+
+.extracard {
+    margin: auto;
+    padding: 0px;
+    gap: 0;
+    height: 51px;
+    width: 36px;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    background:white;
+    user-select: none;
+    font-family: "customFont";
+    justify-content: center;
+    align-items: center;
+}
+
+.hand_type_extra {
+    grid-column: 1/6;
+    padding: 4px;
+    margin: 0px;
+    font-family: customFont;
+    font-size: 12px;
+    color: white;
+    display:flex;
+    justify-content: center;
+}
+
+/* pictures for images */
+
+.spade {
+    background-image: url("https://upload.wikimedia.org/wikipedia/en/b/b8/Card_spade.svg");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 80px 80px;
+    color: #161616;
+}
+
+.club {
+    background-image: url("https://upload.wikimedia.org/wikipedia/en/0/0a/Card_club.svg");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 75px 75px;
+    color: #161616;
+}
+
+.heart {
+    background-image: url("https://upload.wikimedia.org/wikipedia/en/0/0b/Card_heart.svg");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 75px 75px;
+    color: #ef402e;
+}
+
+.diamond {
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/a/ab/Naipe_ouros.png");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 80px 80px;
+    color: #ef402e;
+}
+
+.wild_spade {
+    background-image: url("images/black_repeat_wild.png"), url("https://upload.wikimedia.org/wikipedia/en/b/b8/Card_spade.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: right 10% top 5%, right 10% bottom 5%;
+    background-size: 70px 70px, 80px 80px;
+    color: #161616;
+}
+
+.wild_club {
+    background-image: url("images/black_repeat_wild.png"), url("https://upload.wikimedia.org/wikipedia/en/0/0a/Card_club.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: right 10% top 5%, right 10% bottom 5%;
+    background-size: 70px 70px, 75px 75px;
+    color: #161616;
+}
+
+.wild_heart {
+    background-image: url("images/red_repeat_wild.png"), url("https://upload.wikimedia.org/wikipedia/en/0/0b/Card_heart.svg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: right 10% top 5%, right 10% bottom 5%;
+    background-size: 70px 70px, 75px 75px;
+    color: #ef402e;
+}
+
+.wild_diamond {
+    background-image: url("images/red_repeat_wild.png"), url("https://upload.wikimedia.org/wikipedia/commons/a/ab/Naipe_ouros.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: right 10% top 5%, right 10% bottom 5%;
+    background-size: 70px 70px, 80px 80px;
+    color: #ef402e;
+}
+
+.spade_extra {
+    background-image: url("https://upload.wikimedia.org/wikipedia/en/b/b8/Card_spade.svg");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 24px 24px;
+    color: #161616;
+}
+
+.club_extra {
+    background-image: url("https://upload.wikimedia.org/wikipedia/en/0/0a/Card_club.svg");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 22px 22px;
+    color: #161616;
+}
+
+.heart_extra {
+    background-image: url("https://upload.wikimedia.org/wikipedia/en/0/0b/Card_heart.svg");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 22px 22px;
+    color: #ef402e;
+}
+
+.diamond_extra {
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/a/ab/Naipe_ouros.png");
+    background-repeat: no-repeat;
+    background-position: right 10% bottom 5%;
+    background-size: 24px 24px;
+    color: #ef402e;
+}
