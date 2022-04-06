@@ -22,7 +22,7 @@
 
         <div class="top_container">
 
-            <div class="table_container" data-tooltip="Instructions to play here">
+            <div class="table_container">
 
                 <table>
                     <tbody>
