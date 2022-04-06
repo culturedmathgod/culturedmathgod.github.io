@@ -32,7 +32,7 @@
     position: relative;
 }
 
-.table_container::before,
+/*    .table_container::before,
 .table_container::after {
     position: absolute;
     right: 200%;
@@ -52,7 +52,7 @@
 
 .table_container:hover::before {
     transform: scale(1,1);
-}
+}   */
 
 td:nth-child(1) {
     width: 200px;
