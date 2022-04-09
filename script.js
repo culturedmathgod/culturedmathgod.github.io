@@ -81,22 +81,24 @@ function startGame() {
     });
 
     // Listen for Solver
-    // document.addEventListener('keydown', (e) => {
-    //     if (e.key == "s") {
+    document.addEventListener('keydown', (e) => {
+        if (e.key == "s") {
 
-    //         if (show_solver == 0) {
-    //             graph.style.display = "none"
-    //             graph_container.style.height = "0px"
-    //             graph_container.style.width = "0px"
-    //             console.log("Hide graph, show solver")
-    //             //displayEV();
-    //             show_solver = 1;
-    //         } else {
-    //             removeSolver();
-    //             console.log("Show graph, hide solver")
-    //         }
-    //     }
-    // })
+            var extrahandarea = document.getElementById("extra_hands")
+
+            if (timesDealt == 2) {
+                return
+            } else if (show_solver == 0) {
+                extrahandarea.style.width = 0
+                extrahandarea.style.height = 0
+                displayEV();
+                show_solver = 1;
+            } else {
+                removeSolver();
+                show_solver = 0;
+            }
+        }
+    })
 
 }
 
@@ -124,7 +126,7 @@ function gameFlow() {
 
         // Start New Round
         newRound(deck)
-        //EVcalculator()
+        EVcalculator()
 
         return num_hands;
     } else {
