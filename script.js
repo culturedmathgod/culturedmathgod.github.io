@@ -57,6 +57,22 @@ function startGame() {
     graph.style.display = "block"
     graph_container.style.width = "400px"
 
+    // Layout the main area
+    document.getElementById("main_hand").style.backgroundColor = "rgb(66,126,96)"
+
+    // Add card backs to player slots
+    // for (let i = 0; i < 5; i++) {
+    //     var playerHand = document.querySelector('.player_slot'+i);
+    //     var cardBack = document.createElement("img");
+    //     cardBack.src = "images/monarch_back.png";
+    //     cardBack.width = "120"
+    //     cardBack.height = "165"
+    //     cardBack.style.borderRadius = "1rem"
+    //     // cardBack.classList.add("card_back")
+    //     // cardBack.innerText = " ";
+    //     playerHand.appendChild(cardBack);
+    // }
+
     // Only option to start the game
     document.addEventListener('keydown', (e) => {
         if (e.key == "Enter") {
@@ -91,7 +107,7 @@ function gameFlow() {
         // Beginning of the Game. Increment Round
         round += 1;
         //document.getElementById("roundNum").innerHTML = "Round: "+ round;
-        console.log("Beginning of Round: "+round);
+        //console.log("Beginning of Round: "+round);
 
         // Clear increments
         clearRoundIncrement();
@@ -137,8 +153,6 @@ function removeSolver() {
 }
 
 function newRound(deck) {
-
-    // old blue: rgb(30,30,84)
     document.getElementById("main_hand").style.backgroundColor = "rgb(66,126,96)"
 
     //if(num_hands == null) {console.log("Number of hands not yet initialized")}
@@ -1875,7 +1889,7 @@ function addData(chart, label, data1, data2, data3) {
     chart.data.datasets[0].data.push(data1);
     chart.data.datasets[1].data.push(data2);
     chart.data.datasets[2].data.push(data3);
-    if(data2 > 0) {
+    if(data2 >= 0) {
         chart.data.datasets[1].backgroundColor.push('rgba(0, 255, 128, 0.2)');
         chart.data.datasets[1].borderColor.push('rgb(0, 255, 128)')
     }

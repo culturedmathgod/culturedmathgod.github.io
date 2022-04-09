@@ -13,6 +13,21 @@
     display:flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+}
+
+.heading:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(-20px) translateY(300px);
+    background: grey;
+    width: 400px;
+    font-size: 12px;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
 }
 
 .top_container {
@@ -32,27 +47,19 @@
     position: relative;
 }
 
-/*    .table_container::before,
-.table_container::after {
+.table_container:hover::after {
     position: absolute;
-    right: 200%;
-    transform: translateX(-50%) translateY(-100%) scale(0,0);
-    transform-origin: top center;
-    opacity: 0.5;
-}
-
-.table_container::before {
     content: attr(data-tooltip);
-    color: white;
-    padding: 0.5rem;
-    text-align: center;
-    width: max-content;
-    background: black;
+    transform: translateX(470px) translateY(-294px);
+    background: grey;
+    width: 400px;
+    font-size: 12px;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
 }
-
-.table_container:hover::before {
-    transform: scale(1,1);
-}   */
 
 td:nth-child(1) {
     width: 200px;
@@ -121,6 +128,22 @@ td {
 .graph_container {
     padding: 0px;
     margin: 0px;
+    position: relative
+}
+
+.graph_container:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(-550px) translateY(-275px);
+    background: grey;
+    width: 400px;
+    font-size: 12px;
+    font-family: customFont;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
 }
 
 .hands {
@@ -243,6 +266,14 @@ body {
 }
 
 /* pictures for images */
+
+/*.card_back {
+    background-image: url("images/card_back.png");
+    background-repeat: no-repeat;
+    background-size: 110px 160px;
+    background-color: white;
+    color: #161616;
+}*/
 
 .spade {
     background-image: url("https://upload.wikimedia.org/wikipedia/en/b/b8/Card_spade.svg");

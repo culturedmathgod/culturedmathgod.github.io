@@ -11,12 +11,22 @@
 
         <link href="styles.css" rel="stylesheet">
 
-        <title>Deuces Wild: Game</title>
+        <title>Deuces Wild</title>
 
         <script src="script.js" type="module"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 
-        <div class="heading"><h2>Welcome to Deuces Wild</h2></div>
+        <div class="heading" data-html="true" data-tooltip="Are you ready to become a great Deuces Wild player? Maybe the best ever? Wait... you're saying you've never played before? Don't worry, I got you covered. Let's go through basic gameplay first. Then we talk strategy.&#xa; 
+        1. Hit 'enter' to start the first round. You'll be dealt 5 random cards. &#xa;
+        2. Now you need to select which ones to hold and which ones to fold (get rid of). Click the cards with either your mouse or the '1' to '5' keys to select the cards you want to keep. Gold colored cards are the ones you choose to hold.&#xa;
+        3. Hit 'enter' again to lock in your choice. New and random cards from the remaining deck will replace those you didn't hold.&#xa;
+        4. Since we love combinations, we have decided to repeat this process 8 extra times for you. See these 8 different versions of your held cards above your main hand!&#xa;
+        5. Hit 'enter' again to start up the next round with a fresh deck.&#xa;
+        Now I know what you're thinking, which ones should you hold and which ones should you fold? Great question! Put your cursor over the table on the left for ideas. Pro tips:&#xa;
+        A. Deuces count as 'wild cards', hence the name of the game. You'll always want to hold those!&#xa;
+        B. If you click the 's' key before you lock in your choice, a pop-up will show you the best combinations of what to hold & fold. Hover over the 'solver' button at the bottom of the screen for details. Use this knowledge wisely!">
+            <h2>Welcome to Deuces Wild</h2>
+        </div>
 
     </head>
 
@@ -24,7 +34,11 @@
 
         <div class="top_container">
 
-            <div class="table_container" data-tooltip="Instructions to play here">
+            <div class="table_container" data-html="true" data-tooltip="Hopefully you're familiar with poker hands. If not, go ahead and search search those up and come back here straight away.&#xa;
+            On the very left, you have all the different hands you can make. We've then added a few bonus hands into the mix. These are: (1) FOUR DEUCES i.e. the 4 jokers and (2) WILD ROYAL FLUSH which is a royal flush that contains one or more wild cards. Not all of these hands get rewarded. In the second column of the table we have the payouts for making each of these hands, all the way from 800 points for a NATURAL ROYAL FLUSH to 0 points for a hand with just a HIGH CARD.&#xa;
+            You should be aware that each hand you lock in, a total of 9 each round, will cost you one point! That means your hand needs to at least be as strong as a THREE OF A KIND to breakeven. Anything lower than that will cost you one point, but anything better is pure profit! Other notes:&#xa;
+            - Column 3 contains a tracker for the total number of times you have made each hand. At the very beginning of the game it will be all zeroes since you haven't made anything yet.&#xa;
+            - Column 4 contains a hidden indicator for how many of each hand type you made in the current round. Note: This will only show up, in bright yellow text, when a round is over.">
 
                 <table>
                     <tbody>
@@ -135,7 +149,9 @@
             </div>
 
 
-            <div class="graph_container">
+            <div class="graph_container" data-html="true" data-tooltip="Here is where we show your progress. Red and green bars will appear to document your score each round. Green means you scored more than 0 points from all your hands combined, red means you score less than zero, and no bar will show up when you score 0 points.&#xa;
+            Your total score from all rounds will be tracked by the white line. I usually make it a goal to try and hit a score of +100 before I hit -100.&#xa;
+            Lastly, a bonus feature added is a yellow line that will track your EXPECTED score given you make the BEST decision of what to hold and what to fold. Always nice to compare this line to the white to see if you're running hot, running cold or maybe just running away from the best decisions ;)">
 
                 <div id="chart_container" class="chart_container">
                     <canvas id="myChart" width="100" height="80"></canvas>
@@ -172,7 +188,14 @@
                             options: {
                                 scales: {
                                     y: {
-                                        beginAtZero: true
+                                        beginAtZero: true,
+                                        suggestedMin: -5,
+                                        suggestedMax: 5
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false
                                     }
                                 }
                             }
