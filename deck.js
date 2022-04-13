@@ -33,8 +33,8 @@ class Card {
     getHTMLfirstRound(x) {
         const cardDiv = document.createElement("div");
         cardDiv.innerText = `${this.value}`;
-        if(this.value == 2) {cardDiv.classList.add("card", `wild_${this.suit}`)}
-        if(this.value != 2) {cardDiv.classList.add("card", `${this.suit}`)}
+        if(this.value == 2) {cardDiv.classList.add("card", `wild_${this.suit}`, "cardFront")}
+        if(this.value != 2) {cardDiv.classList.add("card", `${this.suit}`, "cardFront")}
         cardDiv.setAttribute("onclick", "clickfunction(id)");
         cardDiv.id = "card"+x;
         return cardDiv;
@@ -43,8 +43,8 @@ class Card {
     getHTMLfinalRound(x) {
         const cardDiv = document.createElement("div");
         cardDiv.innerText = `${this.value}`;
-        if(this.value == 2) {cardDiv.classList.add("card", `wild_${this.suit}`, "unclickable")}
-        if(this.value != 2) {cardDiv.classList.add("card", `${this.suit}`, "unclickable")}
+        if(this.value == 2) {cardDiv.classList.add("card", `wild_${this.suit}`, "unclickable", "cardBack")}
+        if(this.value != 2) {cardDiv.classList.add("card", `${this.suit}`, "unclickable", "cardBack")}
         cardDiv.setAttribute("onclick", "clickfunction(id)");
         cardDiv.id = "card"+x;
         return cardDiv;

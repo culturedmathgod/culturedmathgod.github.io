@@ -16,16 +16,28 @@
         <script src="script.js" type="module"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 
-        <div class="heading" data-html="true" data-tooltip="Are you ready to become a great Deuces Wild player? Maybe the best ever? Wait... you're saying you've never played before? Don't worry, I got you covered. Let's go through basic gameplay first. Then we talk strategy.&#xa; 
-        1. Hit 'enter' to start the first round. You'll be dealt 5 random cards. &#xa;
-        2. Now you need to select which ones to hold and which ones to fold (get rid of). Click the cards with either your mouse or the '1' to '5' keys to select the cards you want to keep. Gold colored cards are the ones you choose to hold.&#xa;
-        3. Hit 'enter' again to lock in your choice. New and random cards from the remaining deck will replace those you didn't hold.&#xa;
-        4. Since we love combinations, we have decided to repeat this process 8 extra times for you. See these 8 different versions of your held cards above your main hand!&#xa;
-        5. Hit 'enter' again to start up the next round with a fresh deck.&#xa;
-        Now I know what you're thinking, which ones should you hold and which ones should you fold? Great question! Put your cursor over the table on the left for ideas. Pro tips:&#xa;
-        A. Deuces count as 'wild cards', hence the name of the game. You'll always want to hold those!&#xa;
-        B. If you click the 's' key before you lock in your choice, a pop-up will show you the best combinations of what to hold & fold. Hover over the 'solver' button at the bottom of the screen for details. Use this knowledge wisely!">
+        <div id="heading" class="heading">
             <h2>Welcome to Deuces Wild</h2>
+        </div>
+
+        <div class="instructions">
+            <div id="beginner" class="beginner" data-html="true" data-tooltip="Are you ready to become a great Deuces Wild player? Maybe the best ever? Wait... you're saying you've never played before? Ah don't worry, I got you covered. We'll go through basic gameplay first, then talk strategy.&#xa; 
+            1. Hit 'enter' to start the first round. You'll be dealt 5 random cards. &#xa;
+            2. Select which ones to hold and which ones to fold (get rid of). Click the cards with either your mouse or the '1' to '5' keys. Gold cards are the ones you choose to hold.&#xa;
+            3. Hit 'enter' again to lock in your choice. New cards from the remaining deck will replace non-gold cards.&#xa;
+            4. Each hand costs one point to play. Payouts for qualifying hands will earn you points. See those qualifying hands on the table to the left.&#xa;
+            5. Check our your metrics on the bottom right to see if you got lucky, if you made the best decision, and to see how strong your starting hand was. Also, check out the graph on the top right for a visual of overall performance.&#xa;
+            6. Hit 'enter' again to start up the next round with a fresh deck!&#xa;
+            Which ones should you hold and which ones should you fold? Put your cursor over the table on the left for a guide. Also hover over the 'Solver Details' button for a cheat sheet. Pro tip:&#xa;
+            A. Deuces count as 'wild cards', hence the name of the game. They count for any card and any suit that best improves your hand. You'll always want to hold those!&#xa;
+            B. If you want to see multiple iterations of your decision, enable the 'Extra Hands' button below">Cursor here if you're new</div>
+            
+            <div id ="non_beginner" class="non_beginner" data-html="true" data-tooltip="Instructions below:&#xa;
+            1. Hit the 'enter' key to start the round, lock in your hand, and start the following round.&#xa;
+            2. To select what to hold/fold, click on the cards with your mouse or use the '1' to '5' keys. The gold cards will be held. &#xa;
+            3. Hit the 's' key to activate the solver mid-round.&#xa;
+            4. Enable 'Extra Hands' for 8 more iterations.&#xa;
+            5. Graph on the right shows your: expected score given you make the best decision, luck metric with gold dots compared to actual EV, and actual score. The bars represent the round scores.">Cursor here if you're not</div>
         </div>
 
     </head>
@@ -34,7 +46,7 @@
 
         <div class="top_container">
 
-            <div class="table_container" data-html="true" data-tooltip="Hopefully you're familiar with poker hands. If not, go ahead and search search those up and come back here straight away.&#xa;
+            <div id="table_container" class="table_container" data-html="true" data-tooltip="Hopefully you're familiar with poker hands. If not, go ahead and search search those up and come back here straight away.&#xa;
             On the very left, you have all the different hands you can make. We've then added a few bonus hands into the mix. These are: (1) FOUR DEUCES i.e. the 4 jokers and (2) WILD ROYAL FLUSH which is a royal flush that contains one or more wild cards. Not all of these hands get rewarded. In the second column of the table we have the payouts for making each of these hands, all the way from 800 points for a NATURAL ROYAL FLUSH to 0 points for a hand with just a HIGH CARD.&#xa;
             You should be aware that each hand you lock in, a total of 9 each round, will cost you one point! That means your hand needs to at least be as strong as a THREE OF A KIND to breakeven. Anything lower than that will cost you one point, but anything better is pure profit! Other notes:&#xa;
             - Column 3 contains a tracker for the total number of times you have made each hand. At the very beginning of the game it will be all zeroes since you haven't made anything yet.&#xa;
@@ -149,9 +161,12 @@
             </div>
 
 
-            <div class="graph_container" data-html="true" data-tooltip="Here is where we show your progress. Red and green bars will appear to document your score each round. Green means you scored more than 0 points from all your hands combined, red means you score less than zero, and no bar will show up when you score 0 points.&#xa;
-            Your total score from all rounds will be tracked by the white line. I usually make it a goal to try and hit a score of +100 before I hit -100.&#xa;
-            Lastly, a bonus feature added is a yellow line that will track your EXPECTED score given you make the BEST decision of what to hold and what to fold. Always nice to compare this line to the white to see if you're running hot, running cold or maybe just running away from the best decisions ;)">
+            <div id="graph_container" class="graph_container" data-html="true" data-tooltip="1. Red and green bars represent your score each round. No bar means you scored 0 points.&#xa;
+            2. Your total score from all previous rounds will be tracked by the white line. Hover over the right most point on it to see your current score.&#xa;
+            3. When the solver feature is turned on, two extra lines will begin to populate the graph:&#xa;
+            -  a yellow line will track your EXPECTED score given you make the BEST decision each round. Differences between this line and your actual score can be explained by a combination of not making the best choices and/or by luck.&#xa;
+            - a pink line will track your EXPECTED score given the ACTUAL decisions you made. Differences between this line and your actual score are purely driven by luck!&#xa;
+            Tip: if the white and pink lines are really close, but the white and yellow aren't, that means you have room to make better decisions.">
 
                 <div id="chart_container" class="chart_container">
                     <canvas id="myChart" width="100" height="80"></canvas>
@@ -182,6 +197,13 @@
                                     data: [0],
                                     borderColor: ['rgb(255,105,180)'],
                                     borderWidth: 1
+                                },
+                                {
+                                    label: 'Actual Luck',
+                                    type: 'scatter',
+                                    data: [0],
+                                    borderColor: ['gold'],
+                                    borderWidth: 1
                                 }
                                 ]
                             },
@@ -190,7 +212,17 @@
                                     y: {
                                         beginAtZero: true,
                                         suggestedMin: -5,
-                                        suggestedMax: 5
+                                        suggestedMax: 5,
+                                        title: {
+                                            display: true,
+                                            text: "Score"
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: "# of Rounds Played"
+                                        }
                                     }
                                 },
                                 plugins: {
@@ -210,7 +242,32 @@
 
         <div class="game_area" id="game_area">
 
-            <div class="dead_space"></div>
+            <div class="game_settings">
+                <!--Tooltip switch, solver switch, solver button, background music, ard flipping music -->
+
+                <!-- Music plays when user starts Round 1-->
+                <audio id="music_player" autoplay loop>
+                    <source src="elevator_music.mp3" type="audio/mpeg"/>
+                </audio>
+
+                <!-- Solver enable/disable option-->
+
+                <div id="solver_switch" class="solver_switch" data-html="true" data-tooltip="Click the 's' key to activate me in the middle of a round i.e. initial hand has been dealt, but not locked in yet.&#xa;
+                The solver will display the top 5 hold/fold combinations in order from best to worst. White cards are to be held, grey cards are to be discarded. The 6 columns of numbers to the right of each hand combinations are:&#xa;
+                1. EV = the expected value. This number represents the average payout given all the combination of cards that can fill the empty slots. It doesn't account for cost. This means that any EV less than 1 is expected to lose you points on average.&#xa;
+                2. P(win) = the probability that you will make a qualifying hand i.e. it scores more than 0 points.&#xa;
+                3. P(SF+) = the probability that your hand will be a straight flush or better in the payout scale.&#xa;
+                The last 3 columns represent the TOP 3 most likely hands you will make that earn a payout of at least 1.&#xa;
+                For example, say these last 3 columns were: P(Trips) = 30, P(Str.) = 10 and P(Quads) = 8. That means that the most likely qualifying hand ythat you will make is be a THREE OF A KIND. You will make this hand 30% of the time. The next likely hand you will make is a STRAIGHT with a 10% likelihood. The third most likely hand you make is a FOUR OF A KIND with an 8% likelihood.">Solver Details</div>
+                <div id="instructions_switch" class="instructions_switch">Instructions Enabled</div>
+
+                <!-- Extra Hands enable/disable option-->
+
+                <div id="extra_hands_switch" class="extra_hands_switch">Extra Hands Disabled</div>
+                <div id="music_volume_switch" class="music_volume_switch">Music Enabled</div>
+                <div id="poker_hands_view" class="poker_hands_view">View Poker Hands</div>
+
+            </div>
 
             <div class="main_hand" id="main_hand">
 
@@ -254,7 +311,15 @@
 
             </div>
 
-            <div class="dead_space"></div>
+            <div class="dead_space">
+
+                <div id="round_indicator" class="round_indicator">Round: 0</div>
+                <div id="best_decision_streak" class="best_decision_streak">Streak of #1 Option: 0</div>
+                <div id="initial_luck" class="initial_luck">Starting Hand Rank: tbd</div>
+                <div id="final_luck" class="final_luck">Last Outcome: tbd</div>
+                <div id="perc_best_decision" class="perc_best_decision">Best Decision: tbd</div>
+
+            </div>
 
         </div>
 

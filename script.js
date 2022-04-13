@@ -4,12 +4,16 @@ import Deck from "./deck.js"
 // const createCsvWriter = import ('csv-writer').createObjectCsvWriter;
 
 var timesDealt = 0;
-var deck, max_val, min_val, hand_strength, final_score, numHeld
-var num_hands = 9;
+// var solver_switch = 1;
+var instructions_switch = 1;
+var play_music = 1;
+var deck, max_val, min_val, hand_strength, final_score, numHeld, luck_position
+var num_hands = 1;
 var starting_hand_values = []
 var starting_hand_suits = []
 var final_hand_values = []
 var final_hand_suits = []
+var final_hand_signal = []
 var unique_cards = []
 var count_unique_cards = []
 var count_unique_cards_2 = []
@@ -17,6 +21,9 @@ var final_deuces = 0;
 var round = 0
 var agg_score = 0;
 var round_score = 0;
+var best_decision_streak = 0;
+var best_decision_total = 0;
+var best_decision_perc = 0;
 var nat_rf_count, four_d_count, wild_rf_count, five_count, sf_count, quad_count, boat_count, flush_count, str_count, trips_count, two_pair_count, one_pair_count, highcard_count;
 
 // Solver related variables
@@ -34,7 +41,9 @@ var expected_total = 0;
 
 startGame()
 
-var score_chart = {
+const luck_vector = [800, 200, 25, 19.575, 15.059, 15.057, 15, 11.83, 9, 5.851, 4.617, 3.404, 3.34, 3.273, 3.128, 3, 2.213, 2.018, 2, 1.978, 1.702, 1.66, 1.399, 1.383, 1.272, 1.142, 1.095, 1.046, 1.033, 1.029, 1.017, 1, 0.56, 0.511, 0.505, 0.396, 0.388, 0.355, 0.34, 0.339, 0.328, 0.326,0]
+
+const score_chart = {
     "natural_royal_flush": 800,
     "four_deuces": 200,
     "wild_royal_flush": 25,
@@ -52,6 +61,7 @@ var score_chart = {
 
 function startGame() {
 
+    // Layout the graph 
     var graph = document.getElementById("myChart");
     var graph_container = document.getElementById("chart_container")
     graph.style.display = "block"
@@ -60,16 +70,14 @@ function startGame() {
     // Layout the main area
     document.getElementById("main_hand").style.backgroundColor = "rgb(66,126,96)"
 
-    // Add card backs to player slots
+    //Add card backs to player slots
     // for (let i = 0; i < 5; i++) {
     //     var playerHand = document.querySelector('.player_slot'+i);
     //     var cardBack = document.createElement("img");
-    //     cardBack.src = "images/monarch_back.png";
+    //     cardBack.src = "images/card_back2.png";
     //     cardBack.width = "120"
     //     cardBack.height = "165"
     //     cardBack.style.borderRadius = "1rem"
-    //     // cardBack.classList.add("card_back")
-    //     // cardBack.innerText = " ";
     //     playerHand.appendChild(cardBack);
     // }
 
@@ -77,26 +85,143 @@ function startGame() {
     document.addEventListener('keydown', (e) => {
         if (e.key == "Enter") {
             gameFlow()
+            document.querySelector("audio").play()
         }
     });
+
+    // Listen for enabling/disabling of Solver. REMOVING THIS OPTION NOW. SOLVER IS FASTER
+    // document.getElementById("solver_switch").addEventListener('click', (e) => {
+
+    //     const solver_button = document.getElementById("solver_switch")
+
+    //     if (solver_switch == 0) {
+    //         solver_switch = 1;
+    //         solver_button.style.backgroundColor = "rgb(66,126,96)"
+    //         solver_button.innerHTML = "Solver Enabled"
+    //     } else {
+    //         solver_switch = 0;
+    //         solver_button.style.backgroundColor = "grey"
+    //         solver_button.innerHTML = "Solver Disabled"
+    //     }
+    // })
+
+    // Listen for enabling/disabling of Instructions
+    document.getElementById("instructions_switch").addEventListener('click', (e) => {
+
+        const instructions_button = document.getElementById("instructions_switch")
+        const beginner_text = document.getElementById("beginner")
+        const non_beginner_text = document.getElementById("non_beginner")
+        const table_text = document.getElementById("table_container")
+        const graph_text = document.getElementById("graph_container")
+        const solver_text = document.getElementById("solver_switch")
+
+
+        if (instructions_switch == 1) {
+
+            instructions_switch = 0;
+            instructions_button.style.backgroundColor = "grey"
+            instructions_button.innerHTML = "Instructions Disabled"
+
+            beginner_text.classList.remove("beginner")
+            beginner_text.classList.add("beginnerNoHover")
+
+            non_beginner_text.classList.remove("non_beginner")
+            non_beginner_text.classList.add("non_beginnerNoHover")
+
+            table_text.classList.remove("table_container")
+            table_text.classList.add("table_containerNoHover")
+
+            graph_text.classList.remove("graph_container")
+            graph_text.classList.add("graph_containerNoHover")
+
+            solver_text.classList.remove("solver_switch")
+            solver_text.classList.add("solver_switchNoHover")
+
+        } else {
+
+            instructions_switch = 1;
+            instructions_button.style.backgroundColor = "rgb(66,126,96)"
+            instructions_button.innerHTML = "Instructions Enabled"
+
+            beginner_text.classList.add("beginner")
+            beginner_text.classList.remove("beginnerNoHover")
+
+            non_beginner_text.classList.add("non_beginner")
+            non_beginner_text.classList.remove("non_beginnerNoHover")
+
+            table_text.classList.add("table_container")
+            table_text.classList.remove("table_containerNoHover")
+
+            graph_text.classList.add("graph_container")
+            graph_text.classList.remove("graph_containerNoHover")
+
+            solver_text.classList.add("solver_switch")
+            solver_text.classList.remove("solver_switchNoHover")
+
+        }
+    })
 
     // Listen for Solver
     document.addEventListener('keydown', (e) => {
         if (e.key == "s") {
 
-            var extrahandarea = document.getElementById("extra_hands")
+            for(let i = 0; i < 5; i++) {
+                var id = "solver_hand"+i
+                document.getElementById(id).style.padding = "5px"
+            }
+            
+            var extrahandarea = document.getElementById("solver_section")
 
             if (timesDealt == 2) {
                 return
             } else if (show_solver == 0) {
                 extrahandarea.style.width = 0
                 extrahandarea.style.height = 0
-                displayEV();
+                displayEV()
                 show_solver = 1;
             } else {
                 removeSolver();
                 show_solver = 0;
             }
+        }
+    })
+
+    // Listen for Extra Hands
+    document.getElementById("extra_hands_switch").addEventListener('click', (e) => {
+
+        if (timesDealt != 1) {
+
+            const extra_switch = document.getElementById("extra_hands_switch")
+
+            if (num_hands == 1) {
+                num_hands = 9;
+                extra_switch.style.backgroundColor = "rgb(66,126,96)"
+                extra_switch.innerHTML = "Extra Hands Enabled"
+            } else {
+                num_hands = 1;
+                extra_switch.style.backgroundColor = "grey"
+                extra_switch.innerHTML = "Extra Hands Disabled"
+            }
+        }
+        
+    })
+
+    // Listen for enabling/disabling of Music
+    document.getElementById("music_volume_switch").addEventListener('click', (e) => {
+
+        const music_button = document.getElementById("music_volume_switch")
+        const music_player = document.getElementById("music_player")
+
+        if(play_music == 1)  {
+            music_button.style.backgroundColor = "grey"
+            music_button.innerHTML = "Music Disabled"
+            music_player.muted = true;
+            play_music = 0
+        } else {
+            music_button.style.backgroundColor = "rgb(66,126,96)"
+            music_button.innerHTML = "Music Enabled"
+            music_player.muted = false;
+            play_music = 1
         }
     })
 
@@ -108,8 +233,7 @@ function gameFlow() {
 
         // Beginning of the Game. Increment Round
         round += 1;
-        //document.getElementById("roundNum").innerHTML = "Round: "+ round;
-        //console.log("Beginning of Round: "+round);
+        document.getElementById("round_indicator").innerHTML = "Round: " + round;
 
         // Clear increments
         clearRoundIncrement();
@@ -126,10 +250,22 @@ function gameFlow() {
 
         // Start New Round
         newRound(deck)
+
+        // Transition the cards into view using a flip effect
+        // for(let i = 0; i < 5; i++) {
+        //     var playerHand = document.querySelector('.player_slot'+i);
+        //     var manual_transition_delay = i*0.2 + "s"
+        //     playerHand.style.transition = "0.75s"
+        //     playerHand.style.transitionDelay = manual_transition_delay;
+        //     playerHand.style.transform = "rotateY(-180deg)"
+        // }
+
+        // if(solver_switch == 1) {EVcalculator()}
         EVcalculator()
 
         return num_hands;
     } else {
+
         // Execute Final Round
         finalRound(deck)
     }
@@ -155,14 +291,15 @@ function removeSolver() {
 }
 
 function newRound(deck) {
+
+    // Change poker table from grey to green again
     document.getElementById("main_hand").style.backgroundColor = "rgb(66,126,96)"
 
-    //if(num_hands == null) {console.log("Number of hands not yet initialized")}
-    //if(num_hands != null) {console.log("Number of hands selected: "+num_hands)}
+    removeSolver()
 
     // Delete old extra card slots and hand strength slots
-    if(num_hands > 1) {
-        for (let k = 1; k < num_hands; k++) {
+    // if(num_hands > 1) {
+        for (let k = 1; k < 9; k++) {
             var hand_num = k - 1;
             for (let i = 0; i < 5; i++) {
                 var oldCards = document.getElementById('extrahand'+hand_num+'_slot'+i);
@@ -173,9 +310,7 @@ function newRound(deck) {
                 }
             }
         }
-    }
-
-    removeSolver()
+    // }
 
     // Delete old cards in HTML and create new cards
     for (let i = 0; i < 5; i++) {
@@ -214,6 +349,9 @@ function finalRound(deck) {
         final_hand_suits[i] = starting_hand_suits[i];
     }
 
+    // Reset final hand signals
+    final_hand_signal = []
+
     // Create all the final hands with replacement + display them afterwards in their own divs
     for (let k = 0; k < num_hands; k++) {
 
@@ -233,6 +371,9 @@ function finalRound(deck) {
                 // **For cards to be replaced
                 if(replace_card.style.backgroundColor == "white" || replace_card.style.backgroundColor == "rbg(255, 255, 255)" || replace_card.style.backgroundColor == "" ) {
                     
+                    // Push a '1' signal for fold
+                    final_hand_signal.push(1)
+
                     // Remove Prior Card
                     var oldCards = document.getElementById("card"+i);
                     oldCards.remove()
@@ -240,7 +381,9 @@ function finalRound(deck) {
                     // Add New Card
                     var playerHand = document.querySelector('.player_slot'+i);
                     var dealt_card = deck.cards.pop();
+
                     playerHand.appendChild(dealt_card.getHTMLfinalRound(i));
+
 
                     // Convert characters to numeric values before entering the analysis arrays
                     if (dealt_card.value == "T") {dealt_card.value = "10"}
@@ -262,6 +405,9 @@ function finalRound(deck) {
 
                     // For Extra Hands
                     add_back.push(dealt_card);
+                } else {
+                    // Push a '0' signal for hold
+                    final_hand_signal.push(0)
                 }
 
                 if(replace_card.style.backgroundColor == "gold") {replace_card.classList.add("unclickable")}
@@ -278,7 +424,42 @@ function finalRound(deck) {
                 }
             }
 
+            // Transition the cards into view using a flip effect
+
+            // var z = 0;
+
+            // for(let i = 0; i < 5; i++) {
+            //     var playerHand = document.querySelector('.player_slot'+i);
+            //     var cardSlot = document.getElementById('card'+i);
+
+            //     if(cardSlot.style.backgroundColor != "gold") {
+            //         var manual_transition_delay = z*0.2 + "s"
+            //         playerHand.style.transition = "0.75s"
+            //         console.log(z)
+            //         playerHand.style.transitionDelay = manual_transition_delay;
+            //         playerHand.style.transform = "rotateY(180deg)"
+            //         z += 1;
+            //     }
+            // }
+
+
         }
+
+        // var j = 0
+        // Transition the non-gold cards into view
+        // for(let i = 0; i < 5; i++) {
+        //     var playerHand = document.getElementById('card'+i);
+        //     console.log(playerHand.style.backgroundColor)
+
+        //     if(playerHand.style.backgroundColor != "gold") {
+        //         var manual_transition_delay = j + "s"
+        //         playerHand.style.transition = "all 0.75s"
+        //         playerHand.style.transitionDelay = manual_transition_delay;
+        //         playerHand.style.transform = "rotateY(-180deg)"
+        //         j+= 1;
+        //         console.log("transitioned the " + i + "th card.")
+        //     }
+        // }
 
         if (k > 0) {
 
@@ -355,15 +536,68 @@ function finalRound(deck) {
         
         round_score += final_score - 1;
         
+        // All hands processed, time for final changes
         if (k == num_hands - 1) {
             agg_score += round_score;
             expected_total += Math.max(...top5_EV_hand)*num_hands - num_hands;
-            // document.getElementById("currScore").innerHTML = "Previous Total Round Payout: "+round_score;
-            // document.getElementById("cumScore").innerHTML = "Total Aggeregate Score is: "+ agg_score;
-            addData(myChart, round, agg_score, round_score, expected_total)
+
+            // Check for Best Decision + Streak
+            var array_check = 0
+
+            for(let i = 0; i < 5; i++) {
+                if(final_hand_signal[i] == top5_EV_configuration[0][i]) {
+                    array_check += 1;
+                }
+            }
+
+            if(array_check == 5) {
+                best_decision_streak += 1;
+                best_decision_total += 1;
+            } else {
+                best_decision_streak = 0;
+            }
+
+            best_decision_perc = Math.round(best_decision_total*100/round)
+
+            document.getElementById("best_decision_streak").innerHTML = "Streak of #1 Option: " + best_decision_streak;
+            document.getElementById("perc_best_decision").innerHTML = "Best Decision: " + best_decision_perc + "%"; 
+
+            // Check for Actual Decision Luck
+            var actual_decision;
+
+            for(let i = 0; i < 32; i++) {
+
+                var actual_array_check = 0;
+
+                for(let k = 0; k < 5; k++) {
+                    if(final_hand_signal[k] == EV_configuration[i][k]) {
+                        actual_array_check += 1;
+                    }
+                }
+
+                if(actual_array_check == 5) {actual_decision = i}
+            }
+
+            var actual_decision_EV = EV_hand[actual_decision]
+
+            var actual_luck = round_score - (actual_decision_EV-1)*num_hands;
+
+            var final_luck_text;
+
+            if(actual_luck > 0) {final_luck_text = "LUCKY"}
+            if(actual_luck == 0) {final_luck_text = "NEUTRAL"}
+            if(actual_luck < 0) {final_luck_text = "UNLUCKY"}
+
+            document.getElementById("final_luck").innerHTML = "Last Outcome: " + final_luck_text;
+
+            // Update Graph
+            addData(myChart, round, agg_score, round_score, expected_total, actual_luck)
+
+            // Reset Round Score
             round_score = 0
         }
 
+        removeSolver()
         timesDealt = 2;
 
     }
@@ -740,7 +974,7 @@ function EVcalculator() {
     // Create slots for the value and suit of the cards to be drawn
     var next_card_suit, next_card_value
 
-    // Generate All Combinations of Hands
+    // Generate All Combinations of Hands. 0 = Hold, 1 = Fold
     for(let i = 0; i < 2; i++) {
         for(let j = 0; j < 2; j++) {
             for(let k = 0; k < 2; k++) {
@@ -1011,92 +1245,110 @@ function EVcalculator() {
                         }
 
                         if(numHeld == 0) {
-                            for(let a = 0; a < 47; a++) {
-                                for(let b = a + 1; b < 47; b++) {
-                                    for(let c = b + 1; c < 47; c++) {
-                                        for(let d = c + 1; d < 47; d++) {
-                                            for(let e = d + 1; e < 47; e++) {
 
-                                                cardReplaced = 0;
+                            // Hardcoded option:
 
-                                                final_hand_suits = []
-                                                final_hand_values = []
+                            nat_rf_count = 0
+                            four_d_count = 0.0017
+                            wild_rf_count = 0.0983
+                            five_count = 0
+                            sf_count = 0
+                            quad_count = 1.4
+                            boat_count = 0.9
+                            flush_count = 0
+                            str_count = 2.6
+                            trips_count = 15
+                            two_pair_count = 80
+                            one_pair_count = 0
+                            highcard_count = 0
 
-                                                for(let n = 0; n < 5; n++) {
-                                                    if(heldCards[n] == 0) {
+
+                            // for(let a = 0; a < 47; a++) {
+                            //     for(let b = a + 1; b < 47; b++) {
+                            //         for(let c = b + 1; c < 47; c++) {
+                            //             for(let d = c + 1; d < 47; d++) {
+                            //                 for(let e = d + 1; e < 47; e++) {
+
+                            //                     cardReplaced = 0;
+
+                            //                     final_hand_suits = []
+                            //                     final_hand_values = []
+
+                            //                     for(let n = 0; n < 5; n++) {
+                            //                         if(heldCards[n] == 0) {
                                                         
-                                                        next_card_suit = starting_hand_suits[n]
-                                                        next_card_value = starting_hand_values[n]
+                            //                             next_card_suit = starting_hand_suits[n]
+                            //                             next_card_value = starting_hand_values[n]
 
-                                                        // Convert Broadway to Numeric
-                                                        next_card_value = convertBroadtoNum(next_card_value)
+                            //                             // Convert Broadway to Numeric
+                            //                             next_card_value = convertBroadtoNum(next_card_value)
                                                         
-                                                        final_hand_values.push(next_card_value)
-                                                        final_hand_suits.push(next_card_suit)
-                                                    }  
-                                                    else if(heldCards[n] == 1 && cardReplaced == 0) {
-                                                        next_card_suit = deck_holder[a].suit
-                                                        next_card_value = deck_holder[a].value
+                            //                             final_hand_values.push(next_card_value)
+                            //                             final_hand_suits.push(next_card_suit)
+                            //                         }  
+                            //                         else if(heldCards[n] == 1 && cardReplaced == 0) {
+                            //                             next_card_suit = deck_holder[a].suit
+                            //                             next_card_value = deck_holder[a].value
 
-                                                        // Convert Broadway to Numeric
-                                                        next_card_value = convertBroadtoNum(next_card_value)
+                            //                             // Convert Broadway to Numeric
+                            //                             next_card_value = convertBroadtoNum(next_card_value)
                                                         
-                                                        final_hand_values.push(next_card_value)
-                                                        final_hand_suits.push(next_card_suit)
-                                                        cardReplaced += 1;
-                                                    }
-                                                    else if(heldCards[n] == 1 && cardReplaced == 1) {
-                                                        next_card_suit = deck_holder[b].suit
-                                                        next_card_value = deck_holder[b].value
+                            //                             final_hand_values.push(next_card_value)
+                            //                             final_hand_suits.push(next_card_suit)
+                            //                             cardReplaced += 1;
+                            //                         }
+                            //                         else if(heldCards[n] == 1 && cardReplaced == 1) {
+                            //                             next_card_suit = deck_holder[b].suit
+                            //                             next_card_value = deck_holder[b].value
 
-                                                        // Convert Broadway to Numeric
-                                                        next_card_value = convertBroadtoNum(next_card_value)
+                            //                             // Convert Broadway to Numeric
+                            //                             next_card_value = convertBroadtoNum(next_card_value)
                                                         
-                                                        final_hand_values.push(next_card_value)
-                                                        final_hand_suits.push(next_card_suit)
-                                                        cardReplaced += 1;
-                                                    }
-                                                    else if(heldCards[n] == 1 && cardReplaced == 2) {
-                                                        next_card_suit = deck_holder[c].suit
-                                                        next_card_value = deck_holder[c].value
+                            //                             final_hand_values.push(next_card_value)
+                            //                             final_hand_suits.push(next_card_suit)
+                            //                             cardReplaced += 1;
+                            //                         }
+                            //                         else if(heldCards[n] == 1 && cardReplaced == 2) {
+                            //                             next_card_suit = deck_holder[c].suit
+                            //                             next_card_value = deck_holder[c].value
 
-                                                        // Convert Broadway to Numeric
-                                                        next_card_value = convertBroadtoNum(next_card_value)
+                            //                             // Convert Broadway to Numeric
+                            //                             next_card_value = convertBroadtoNum(next_card_value)
                                                         
-                                                        final_hand_values.push(next_card_value)
-                                                        final_hand_suits.push(next_card_suit)
-                                                        cardReplaced += 1;
-                                                    }
-                                                    else if(heldCards[n] == 1 && cardReplaced == 3) {
-                                                        next_card_suit = deck_holder[d].suit
-                                                        next_card_value = deck_holder[d].value
+                            //                             final_hand_values.push(next_card_value)
+                            //                             final_hand_suits.push(next_card_suit)
+                            //                             cardReplaced += 1;
+                            //                         }
+                            //                         else if(heldCards[n] == 1 && cardReplaced == 3) {
+                            //                             next_card_suit = deck_holder[d].suit
+                            //                             next_card_value = deck_holder[d].value
 
-                                                        // Convert Broadway to Numeric
-                                                        next_card_value = convertBroadtoNum(next_card_value)
+                            //                             // Convert Broadway to Numeric
+                            //                             next_card_value = convertBroadtoNum(next_card_value)
                                                         
-                                                        final_hand_values.push(next_card_value)
-                                                        final_hand_suits.push(next_card_suit)
-                                                        cardReplaced += 1;
-                                                    }
-                                                    else {
-                                                        next_card_suit = deck_holder[e].suit
-                                                        next_card_value = deck_holder[e].value
+                            //                             final_hand_values.push(next_card_value)
+                            //                             final_hand_suits.push(next_card_suit)
+                            //                             cardReplaced += 1;
+                            //                         }
+                            //                         else {
+                            //                             next_card_suit = deck_holder[e].suit
+                            //                             next_card_value = deck_holder[e].value
 
-                                                        // Convert Broadway to Numeric
-                                                        next_card_value = convertBroadtoNum(next_card_value)
+                            //                             // Convert Broadway to Numeric
+                            //                             next_card_value = convertBroadtoNum(next_card_value)
                                                         
-                                                        final_hand_values.push(next_card_value)
-                                                        final_hand_suits.push(next_card_suit)
-                                                    }
-                                                }
+                            //                             final_hand_values.push(next_card_value)
+                            //                             final_hand_suits.push(next_card_suit)
+                            //                         }
+                            //                     }
 
-                                                handProcessingEV()
-                                                handCount()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            //                     handProcessingEV()
+                            //                     handCount()
+                            //                 }
+                            //             }
+                            //         }
+                            //     }
+                            // }
                         }
                         
                         // Summary per configuration
@@ -1124,6 +1376,13 @@ function EVcalculator() {
     }
 
     sortEV()
+
+    luck_position = luck_order(top5_EV_hand[0]) + 1
+
+    //console.log(luck_position)
+
+    document.getElementById("initial_luck").innerHTML = "Starting Hand Rank: " + luck_position + "/" +luck_vector.length
+
 
 }
 
@@ -1326,6 +1585,14 @@ function sortEV() {
     
 }
 
+function luck_order(top_EV_value) {
+    for (let z = 0; z < luck_vector.length; z++) {
+        if(top_EV_value >= luck_vector[z]) {
+            return z
+        }
+    }
+}
+
 function getHTML_solverCards(suit, value, slot, held, hand) {
     const cardDiv = document.createElement("div");
     cardDiv.innerText = value;
@@ -1479,7 +1746,7 @@ function luckCalc() {
                         starting_hand_suits = [deck_holder[v].suit, deck_holder[w].suit, deck_holder[x].suit, deck_holder[y].suit, deck_holder[z].suit]
                         starting_hand_values = [deck_holder[v].value, deck_holder[w].value, deck_holder[x].value, deck_holder[y].value, deck_holder[z].value]
 
-                        console.log(starting_hand_values)
+                        //console.log(starting_hand_values)
                         // console.log(starting_hand_suits)
 
                         allEV_hand = []
@@ -1858,7 +2125,7 @@ function luckCalc() {
                             }
                         }
 
-                        console.log(allEV_hand)
+                        //console.log(allEV_hand)
                         maxEV = Math.max(...allEV_hand)
                         // console.log(maxEV)
                         allEV.push(maxEV)
@@ -1886,11 +2153,18 @@ function luckCalc() {
 
 // GRAPH
 
-function addData(chart, label, data1, data2, data3) {
+function addData(chart, label, data1, data2, data3, data4) {
     chart.data.labels.push(label);
     chart.data.datasets[0].data.push(data1);
     chart.data.datasets[1].data.push(data2);
     chart.data.datasets[2].data.push(data3);
+    if(data4 > 0) {
+        chart.data.datasets[3].data.push(8)
+    }
+    if(data4 < 0) {
+        chart.data.datasets[3].data.push(-8)
+    }
+
     if(data2 >= 0) {
         chart.data.datasets[1].backgroundColor.push('rgba(0, 255, 128, 0.2)');
         chart.data.datasets[1].borderColor.push('rgb(0, 255, 128)')
@@ -1899,7 +2173,7 @@ function addData(chart, label, data1, data2, data3) {
         chart.data.datasets[1].backgroundColor.push('rgba(255, 99, 132, 0.2)');
         chart.data.datasets[1].borderColor.push('rgb(255, 99, 132)')
     }
-    console.log(chart.data.datasets[1].backgroundColor)
-    console.log(chart.data.datasets[1].data)
+    //console.log(chart.data.datasets[1].backgroundColor)
+    //console.log(chart.data.datasets[1].data)
     chart.update();
 }

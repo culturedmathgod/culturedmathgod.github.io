@@ -3,12 +3,16 @@
     src: url('WorkSans-Regular.ttf');
 }
 
+.head {
+    display: grid;
+    grid-template-rows: 60px 20px;
+}
+
 .heading {
-    padding: 10px;
+    padding-top: 15px;
     height: 40px;
-    margin: 10px;
     font-family: customFont;
-    font-size: 30px;
+    font-size: 25px;
     color: white;
     display:flex;
     align-items: center;
@@ -16,11 +20,36 @@
     position: relative;
 }
 
-.heading:hover::after {
+.instructions {
+    padding-bottom: 10px;
+    padding-top: 5px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-family: customFont;
+    font-size: 11px;
+    color: gold;
+}
+
+.beginner {
+    padding-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    position: relative
+}
+
+.beginnerNoHover {
+    padding-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+}
+
+.beginner:hover::after {
     position: absolute;
     content: attr(data-tooltip);
-    transform: translateX(-20px) translateY(300px);
-    background: grey;
+    transform: translateX(225px) translateY(280px);
+    background: silver;
     width: 400px;
     font-size: 12px;
     padding: 1rem;
@@ -28,6 +57,37 @@
     color: #1e1e54; 
     white-space: pre-line;
     display: block;
+    z-index: 2;
+}
+
+.non_beginner {
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    position: relative
+}
+
+.non_beginnerNoHover {
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+.non_beginner:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(-225px) translateY(170px);
+    background: silver;
+    width: 400px;
+    font-size: 12px;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
+    z-index: 2;
 }
 
 .top_container {
@@ -47,11 +107,20 @@
     position: relative;
 }
 
+.table_containerNoHover {
+    margin: 0px;
+    padding: 10px;
+    background-color: #1e1e54;
+    font-family: customFont;
+    width: 400px;
+    position: relative;
+}
+
 .table_container:hover::after {
     position: absolute;
     content: attr(data-tooltip);
-    transform: translateX(470px) translateY(-294px);
-    background: grey;
+    transform: translateX(494px) translateY(-294px);
+    background: silver;
     width: 400px;
     font-size: 12px;
     padding: 1rem;
@@ -59,6 +128,7 @@
     color: #1e1e54; 
     white-space: pre-line;
     display: block;
+    z-index: 2;
 }
 
 td:nth-child(1) {
@@ -90,16 +160,12 @@ td {
 .solver_section {
     margin: 0px;
     padding: 0px;
-    grid-template-rows: repeat(3, 1fr);
-    grid-template-columns: 9fr 1fr;
-}
-
-.chart_container {
-    height: 300px;
-    width: 600px;
+    display: grid;
+    grid-template-rows: repeat(5, 1fr);
 }
 
 .solver_hand {
+    padding: 0px;
     display: grid;
     grid-template-columns: repeat(11, 55px);
     font-size: 12px;
@@ -125,7 +191,18 @@ td {
     justify-content: center;
 }
 
+.chart_container {
+    height: 300px;
+    width: 600px;
+}
+
 .graph_container {
+    padding: 0px;
+    margin: 0px;
+    position: relative
+}
+
+.graph_containerNoHover {
     padding: 0px;
     margin: 0px;
     position: relative
@@ -134,8 +211,8 @@ td {
 .graph_container:hover::after {
     position: absolute;
     content: attr(data-tooltip);
-    transform: translateX(-550px) translateY(-275px);
-    background: grey;
+    transform: translateX(-535px) translateY(-270px);
+    background: silver;
     width: 400px;
     font-size: 12px;
     font-family: customFont;
@@ -144,6 +221,7 @@ td {
     color: #1e1e54; 
     white-space: pre-line;
     display: block;
+    z-index: 2;
 }
 
 .hands {
@@ -182,6 +260,7 @@ body {
     display: grid;
     justify-content: center;
     align-items: center;
+    transform-style: preserve-3d;
 }
 
 .hand_type {
@@ -197,6 +276,7 @@ body {
     align-items: center;
     position: relative;
     top: -20px;
+    z-index: 1;
 }
 
 .card {
@@ -218,6 +298,14 @@ body {
     pointer-events: none;
 }
 
+/* Flip effects */
+/*.cardFront,
+.cardBack {
+    position: absolute;
+    backface-visibility: hidden;
+    transform: rotateY(180deg);
+}*/
+
 /* Extra Hands */
 
 .extra_hand_area {
@@ -230,7 +318,7 @@ body {
 
 .extra_hand {
     padding: 0px;
-    margin: auto;
+    margin: auto 10px;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: 20px 60px;
@@ -265,15 +353,106 @@ body {
     justify-content: center;
 }
 
-/* pictures for images */
+/* Settings for the Game */
 
-/*.card_back {
-    background-image: url("images/card_back.png");
-    background-repeat: no-repeat;
-    background-size: 110px 160px;
-    background-color: white;
-    color: #161616;
-}*/
+.extra_hands_switch {
+    padding: 10px;
+    margin: 10px;
+    background-color: grey;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-family: customFont;
+    user-select: none;
+    position: relative;
+}
+
+.solver_switchNoHover {
+    padding: 10px;
+    margin: 10px;
+    background-color: #ef402e;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-family: customFont;
+    user-select: none;
+    position: relative;
+}
+
+.instructions_switch,
+.music_volume_switch {
+    padding: 10px;
+    margin: 10px;
+    background-color: rgb(66,126,96);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-family: customFont;
+    user-select: none;
+}
+
+.solver_switch:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(575px) translateY(-120px);
+    background: silver;
+    width: 400px;
+    font-size: 12px;
+    font-family: customFont;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
+    z-index: 2;
+}
+
+.poker_hands_view,
+.solver_switch {
+    padding: 10px;
+    margin: 10px;
+    background-color: #ef402e;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-family: customFont;
+    user-select: none;
+    position: relative;
+}
+
+/* Metrics for the Game */
+.round_indicator,
+.best_decision_streak,
+.initial_luck,
+.final_luck,
+.perc_best_decision {
+    padding: 10px;
+    margin: 10px;
+    background-color: silver;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e1e54;
+    font-size: 18px;
+    font-family: customFont;
+    user-select: none;
+    position: relative;
+}
+
+/* Pictures for Images */
 
 .spade {
     background-image: url("https://upload.wikimedia.org/wikipedia/en/b/b8/Card_spade.svg");
