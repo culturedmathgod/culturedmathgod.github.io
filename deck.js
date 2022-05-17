@@ -57,6 +57,30 @@ class Card {
         cardDiv.id = "extrahand"+hand+"_slot"+slot;
         return cardDiv;
     }
+
+    getHTML_actual(x) {
+        const cardDiv = document.createElement("div");
+        cardDiv.innerText = `${this.value}`;
+        cardDiv.classList.add("extracard", `${this.suit}_extra`);
+        cardDiv.id = "actual_"+x;
+        return cardDiv;
+    }
+
+    getHTML_personal(x) {
+        const cardDiv = document.createElement("div");
+        cardDiv.innerText = `${this.value}`;
+        cardDiv.classList.add("extracard", `${this.suit}_extra`);
+        cardDiv.id = "personal_"+x;
+        return cardDiv;
+    }
+
+    getHTML_top(x) {
+        const cardDiv = document.createElement("div");
+        cardDiv.innerText = `${this.value}`;
+        cardDiv.classList.add("extracard", `${this.suit}_extra`);
+        cardDiv.id = "top_"+x;
+        return cardDiv;
+    }
 }
 
 function freshDeck() {

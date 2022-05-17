@@ -1,12 +1,10 @@
 import Deck from "./deck.js"
-// const fs = import ('fs');
-// const csv = import ('csv-parser')
-// const createCsvWriter = import ('csv-writer').createObjectCsvWriter;
 
 var timesDealt = 0;
-// var solver_switch = 1;
-var instructions_switch = 1;
+var show_payout = 1;
 var play_music = 1;
+var bg_type = 0;
+var stats_setting = 0;
 var deck, max_val, min_val, hand_strength, final_score, numHeld, luck_position
 var num_hands = 1;
 var starting_hand_values = []
@@ -38,6 +36,45 @@ var first_value, second_value, third_value
 var first_text, second_text, third_text
 var show_solver = 0;
 var expected_total = 0;
+var solverTopSolutions = []
+
+// Modal related variables
+const openModalButtons = document.querySelectorAll('[data-modal-target]')
+const closeModalButtons = document.querySelectorAll('[data-close-button]')
+
+// Sidebar variables
+const sidebar_open = document.getElementById('open_button')
+const sidebar_close = document.getElementById('close_button')
+const overlay = document.getElementById('overlay')
+
+// Settings variables
+const settings_menu = document.getElementById('settings')
+const overlay_settings = document.getElementById('overlay_settings')
+const settings_close = document.getElementById('settings_close')
+
+// Color Schemes for Game: 
+
+// Classic: 
+var color_bg = "rgb(30,30,84)"
+var color_icon = "white"
+var color_switch = "rgb(30,30,84)" // button switch for type
+var color_text = "white"
+var color_table_start = "rgb(66,126,96)"
+var color_start_switch = color_table_start
+var color_button = "silver"
+var color_button_text = color_text
+var color_bar_green = "rgba(0,255,128,0.2)"
+var color_bar_green_border = "rgb(0,255,128)"
+var color_bar_red = "rgba(239,64,46, 0.2)"
+var color_bar_red_border = "rgb(239,64,46)"
+var color_button_best = "gold" // gold
+var color_button_top5 = "rgb(227,151,116)" // orange cream
+var color_button_bad = color_bar_red_border // red
+var color_line_total = "white"
+var color_line_EV = "gold" // gold
+var color_dot_luck = color_line_EV
+var color_solver_title_bg = "grey"
+var color_solver_title_text = "gold"
 
 startGame()
 
@@ -50,7 +87,7 @@ const score_chart = {
     "five_kind": 15,
     "straight_flush": 9,
     "quads": 5,
-    "boat": 4,
+    "boat": 3,
     "flush": 2.1, // flush score gets converted to 2 later on. need distinct scores for searchability of hand names
     "straight": 2,
     "trips": 1,
@@ -61,27 +98,110 @@ const score_chart = {
 
 function startGame() {
 
+    // 1. LOAD PRIMARY ITEMS
+
     // Layout the graph 
     var graph = document.getElementById("myChart");
     var graph_container = document.getElementById("chart_container")
     graph.style.display = "block"
     graph_container.style.width = "400px"
 
-    // Layout the main area
-    document.getElementById("main_hand").style.backgroundColor = "rgb(66,126,96)"
+    // Display for Poker Hands
+    pokerHands()
 
-    //Add card backs to player slots
-    // for (let i = 0; i < 5; i++) {
-    //     var playerHand = document.querySelector('.player_slot'+i);
-    //     var cardBack = document.createElement("img");
-    //     cardBack.src = "images/card_back2.png";
-    //     cardBack.width = "120"
-    //     cardBack.height = "165"
-    //     cardBack.style.borderRadius = "1rem"
-    //     playerHand.appendChild(cardBack);
-    // }
+    // Display for Deuces Hands
+    deucesHands()
 
-    // Only option to start the game
+    // Display for Basic Info
+    all_hearts()
+
+    // Display for Brain Food
+    brain_food()
+
+    // 2. LISTEN TO SETTINGS MENU
+
+    // Open the settings menu
+    settings_menu.addEventListener('click', () => {
+        overlay_settings.classList.add('active')
+    })
+
+    // Close settings option #1: clicking the overlay closes everything
+    overlay_settings.addEventListener('click', () => {
+        const modals = document.querySelectorAll('.modal.active')
+        modals.forEach(modal => {
+            closeModal(modal)
+        })
+        overlay_settings.classList.remove('active')
+    })
+
+    // Close settings option #2: clicking the close button closes everything
+    settings_close.addEventListener('click', () => {
+        const modals = document.querySelectorAll('.modal.active')
+        modals.forEach(modal => {
+            closeModal(modal)
+        })
+        overlay_settings.classList.remove('active')
+    })
+
+    // 3. LISTEN TO SIDEBAR MENU
+
+    // Open & close the sidebar menu
+    sidebar_open.addEventListener('click', () => {
+        overlay.classList.add('active')
+    })
+
+    sidebar_close.addEventListener('click', () => {
+        overlay.classList.remove('active')
+    })
+
+    // Close modals option #1: through the close button on the modal
+    closeModalButtons.forEach(sidebar_element => {
+        sidebar_element.addEventListener('click', () => {
+            const modal = sidebar_element.closest(".modal")
+            closeModal(modal)
+        })
+    })
+
+    // Close modals option #2: clicking the overlay closes everything
+    overlay.addEventListener('click', () => {
+        const modals = document.querySelectorAll('.modal.active')
+        modals.forEach(modal => {
+            closeModal(modal)
+        })
+    })
+
+    // Close modals option #3: closing the sidebar menu close button
+    closeModalButtons.forEach(sidebar_element => {
+        sidebar_close.addEventListener('click', () => {
+            const modal = sidebar_element.closest(".modal")
+            closeModal(modal)
+        })
+    })
+
+    // Open modals on the Sidebar Menu
+    openModalButtons.forEach(sidebar_element => {
+        sidebar_element.addEventListener('click', () => {
+            const modal_clicked = document.querySelector(sidebar_element.dataset.modalTarget)
+
+            // If new modal clicked = the current open one, just close current modal
+            if(modal_clicked.classList.contains('active')) {
+                closeModal(modal_clicked)
+            } else {
+                // Close current modal when a new one is selected
+                closeModalButtons.forEach(sidebar_element => {
+                    const modal_delete = sidebar_element.closest(".modal")
+                    closeModal(modal_delete)
+                })            
+
+                // Open the selected modal last
+                openModal(modal_clicked)
+            }
+        })
+    })
+
+    // 4. GAME START OPTIONS
+
+    // A. Enter key
     document.addEventListener('keydown', (e) => {
         if (e.key == "Enter") {
             gameFlow()
@@ -89,79 +209,15 @@ function startGame() {
         }
     });
 
-    // Listen for enabling/disabling of Solver. REMOVING THIS OPTION NOW. SOLVER IS FASTER
-    // document.getElementById("solver_switch").addEventListener('click', (e) => {
-
-    //     const solver_button = document.getElementById("solver_switch")
-
-    //     if (solver_switch == 0) {
-    //         solver_switch = 1;
-    //         solver_button.style.backgroundColor = "rgb(66,126,96)"
-    //         solver_button.innerHTML = "Solver Enabled"
-    //     } else {
-    //         solver_switch = 0;
-    //         solver_button.style.backgroundColor = "grey"
-    //         solver_button.innerHTML = "Solver Disabled"
-    //     }
-    // })
-
-    // Listen for enabling/disabling of Instructions
-    document.getElementById("instructions_switch").addEventListener('click', (e) => {
-
-        const instructions_button = document.getElementById("instructions_switch")
-        const beginner_text = document.getElementById("beginner")
-        const non_beginner_text = document.getElementById("non_beginner")
-        const table_text = document.getElementById("table_container")
-        const graph_text = document.getElementById("graph_container")
-        const solver_text = document.getElementById("solver_switch")
-
-
-        if (instructions_switch == 1) {
-
-            instructions_switch = 0;
-            instructions_button.style.backgroundColor = "grey"
-            instructions_button.innerHTML = "Instructions Disabled"
-
-            beginner_text.classList.remove("beginner")
-            beginner_text.classList.add("beginnerNoHover")
-
-            non_beginner_text.classList.remove("non_beginner")
-            non_beginner_text.classList.add("non_beginnerNoHover")
-
-            table_text.classList.remove("table_container")
-            table_text.classList.add("table_containerNoHover")
-
-            graph_text.classList.remove("graph_container")
-            graph_text.classList.add("graph_containerNoHover")
-
-            solver_text.classList.remove("solver_switch")
-            solver_text.classList.add("solver_switchNoHover")
-
-        } else {
-
-            instructions_switch = 1;
-            instructions_button.style.backgroundColor = "rgb(66,126,96)"
-            instructions_button.innerHTML = "Instructions Enabled"
-
-            beginner_text.classList.add("beginner")
-            beginner_text.classList.remove("beginnerNoHover")
-
-            non_beginner_text.classList.add("non_beginner")
-            non_beginner_text.classList.remove("non_beginnerNoHover")
-
-            table_text.classList.add("table_container")
-            table_text.classList.remove("table_containerNoHover")
-
-            graph_text.classList.add("graph_container")
-            graph_text.classList.remove("graph_containerNoHover")
-
-            solver_text.classList.add("solver_switch")
-            solver_text.classList.remove("solver_switchNoHover")
-
-        }
+    // B. Click button
+    document.getElementById("game_start_switch").addEventListener('click', (e) => {
+        gameFlow()
+        document.querySelector("audio").play()
     })
 
-    // Listen for Solver
+    // 5. SETTINGS FOR THE GAME
+
+    // Activate Solver
     document.addEventListener('keydown', (e) => {
         if (e.key == "s") {
 
@@ -186,7 +242,7 @@ function startGame() {
         }
     })
 
-    // Listen for Extra Hands
+    // Extra Hands Option 1
     document.getElementById("extra_hands_switch").addEventListener('click', (e) => {
 
         if (timesDealt != 1) {
@@ -206,7 +262,28 @@ function startGame() {
         
     })
 
-    // Listen for enabling/disabling of Music
+    // Extra Hands Option 2
+    document.addEventListener("keydown", (e) => {
+        if (e.key == 'e') {
+
+            if (timesDealt != 1) {
+
+                const extra_switch = document.getElementById("extra_hands_switch")
+    
+                if (num_hands == 1) {
+                    num_hands = 9;
+                    extra_switch.style.backgroundColor = "rgb(66,126,96)"
+                    extra_switch.innerHTML = "Extra Hands Enabled"
+                } else {
+                    num_hands = 1;
+                    extra_switch.style.backgroundColor = "grey"
+                    extra_switch.innerHTML = "Extra Hands Disabled"
+                }
+            }
+        }
+    })
+
+    // Music
     document.getElementById("music_volume_switch").addEventListener('click', (e) => {
 
         const music_button = document.getElementById("music_volume_switch")
@@ -225,18 +302,404 @@ function startGame() {
         }
     })
 
+    // Statistics Option 1
+    document.getElementById("stats_switch").addEventListener('click', (e) => {
+
+        const stats_button = document.getElementById("stats_switch")
+        const stats_setting_none = document.getElementById("stats_setting_none")
+        const stats_setting_basic = document.getElementById("stats_setting_basic")
+        const stats_setting_pro = document.getElementById("stats_setting_pro")
+
+        if(stats_setting == 0)  {
+            stats_button.style.backgroundColor = "rgb(66,126,96)"
+            stats_button.innerHTML = "Statistics - BASIC Mode"
+            stats_setting_none.style.display = "none"
+            stats_setting_basic.style.display = "inline"
+            document.getElementById("graph_container").style.visibility = "visible"
+            myChart.data.datasets[2].hidden = true
+            myChart.data.datasets[3].hidden = true
+            myChart.update()
+            stats_setting = 1
+        } else if (stats_setting == 1) {
+            stats_button.style.backgroundColor = "rgb(30,30,84)"
+            stats_button.innerHTML = "Statistics - PRO Mode"
+            stats_setting_basic.style.display = "none"
+            stats_setting_pro.style.display = "inline"
+            myChart.data.datasets[2].hidden = false
+            myChart.data.datasets[3].hidden = false
+            myChart.update()
+            stats_setting = 2
+        } else {
+            stats_button.style.backgroundColor = "grey"
+            stats_button.innerHTML = "Statistics - NONE Mode"
+            stats_setting_pro.style.display = "none"
+            stats_setting_none.style.display = "inline"
+            document.getElementById("graph_container").style.visibility = "hidden"
+            stats_setting = 0
+        }
+    })
+
+    // Statistics Option 2
+    document.addEventListener('keydown', (e) => {
+        if (e.key == "g") {
+
+            const stats_button = document.getElementById("stats_switch")
+            const stats_setting_none = document.getElementById("stats_setting_none")
+            const stats_setting_basic = document.getElementById("stats_setting_basic")
+            const stats_setting_pro = document.getElementById("stats_setting_pro")
+            
+            if(stats_setting == 0)  {
+                stats_button.style.backgroundColor = "rgb(66,126,96)"
+                stats_button.innerHTML = "Statistics - BASIC Mode"
+                stats_setting_none.style.display = "none"
+                stats_setting_basic.style.display = "inline"
+                document.getElementById("graph_container").style.visibility = "visible"
+                myChart.data.datasets[2].hidden = true
+                myChart.data.datasets[3].hidden = true
+                myChart.update()
+                stats_setting = 1
+            } else if (stats_setting == 1) {
+                stats_button.style.backgroundColor = "rgb(30,30,84)"
+                stats_button.innerHTML = "Statistics - PRO Mode"
+                stats_setting_basic.style.display = "none"
+                stats_setting_pro.style.display = "inline"
+                myChart.data.datasets[2].hidden = false
+                myChart.data.datasets[3].hidden = false
+                myChart.update()
+                stats_setting = 2
+            } else {
+                stats_button.style.backgroundColor = "grey"
+                stats_button.innerHTML = "Statistics - NONE Mode"
+                stats_setting_pro.style.display = "none"
+                stats_setting_none.style.display = "inline"
+                document.getElementById("graph_container").style.visibility = "hidden"
+                stats_setting = 0
+            }
+        }
+    })
+
+    // Payout Table
+    document.getElementById('table_switch').addEventListener('click', (e) => {
+
+        const payout_table = document.getElementById('table_container')
+        const table_switch = document.getElementById('table_switch')
+
+        if(show_payout == 1) {
+            payout_table.style.visibility = "hidden"
+            table_switch.style.backgroundColor = "grey"
+            table_switch.innerHTML = "Payout Table Disabled"
+            show_payout = 0
+        } else {
+            payout_table.style.visibility = "visible"
+            table_switch.style.backgroundColor = "rgb(66,126,96)"
+            table_switch.innerHTML = "Payout Table Enabled"
+            show_payout = 1
+        }
+
+    })
+
+    // Different Background Modes Option 1
+    document.getElementById('bg_mode').addEventListener('click', (e) => {
+
+        const bg_switch = document.getElementById('bg_mode')
+
+        if(bg_type == 0) {
+
+            bg_switch.innerHTML = "Retro Mode"
+            colorChange(bg_type)
+            bg_type = 1
+
+        } else if(bg_type == 1) {
+
+            bg_switch.innerHTML = "Beach Mode"
+            colorChange(bg_type)
+            bg_type = 2
+
+        } else if(bg_type == 2) {
+
+            bg_switch.innerHTML = "Vintage Mode"
+            colorChange(bg_type)
+            bg_type = 3
+
+        } else if (bg_type == 3) {
+
+            bg_switch.innerHTML = "Zen Mode"
+            colorChange(bg_type)
+            bg_type = 4
+
+        } else {
+
+            bg_switch.innerHTML = "Classic Mode"
+            colorChange(bg_type)
+            bg_type = 0
+
+        }
+    })
+
+    // Different Background Modes Option 2
+    document.addEventListener('keydown', (e) => {
+        if(e.key == 't') {
+
+            const bg_switch = document.getElementById('bg_mode')
+
+            if(bg_type == 0) {
+
+                bg_switch.innerHTML = "Retro Mode"
+                colorChange(bg_type)
+                bg_type = 1
+
+            } else if(bg_type == 1) {
+
+                bg_switch.innerHTML = "Beach Mode"
+                colorChange(bg_type)
+                bg_type = 2
+
+            } else if(bg_type == 2) {
+
+                bg_switch.innerHTML = "Vintage Mode"
+                colorChange(bg_type)
+                bg_type = 3
+
+            } else if (bg_type == 3) {
+
+                bg_switch.innerHTML = "Zen Mode"
+                colorChange(bg_type)
+                bg_type = 4
+
+            } else {
+
+                bg_switch.innerHTML = "Classic Mode"
+                colorChange(bg_type)
+                bg_type = 0
+
+            }
+
+        }
+    })
+
+    // 6. START BUTTON 
+    document.getElementById("game_start_switch").addEventListener('mouseover', (e) => {
+        document.getElementById("game_start_switch").style.backgroundColor = color_start_switch
+        document.getElementById("game_start_switch").style.fontSize = "40px"
+    })
+
+    document.getElementById("game_start_switch").addEventListener('mouseout', (e) => {
+        document.getElementById("game_start_switch").style.backgroundColor = "silver"
+        document.getElementById("game_start_switch").style.fontSize = "25px"
+    })
+    
+}
+
+function colorChange(type) {
+
+    const bg_switch = document.getElementById('bg_mode')
+    const main_table = document.getElementById("main_hand")
+    const payout_table = document.getElementById('table_container')
+    const header = document.getElementById('heading')
+    const solver_section = document.getElementById('solver_section')
+    const extra_hands = document.getElementById('extra_hands')
+    var visual_decision = document.getElementById("best_decision_indicator_button")
+
+    
+    if(type == 0) {
+        // Retro: 
+        color_bg = "#7A04EB"
+        color_text = "#FE75FE"
+        color_icon = color_text
+        color_switch = color_bg // button switch for type
+        color_table_start = "rgb(234,0,217)"
+        color_start_switch = color_table_start
+        color_button = "silver"
+        color_button_text = color_text
+        color_bar_green = "rgb(135,207,161,0.2)"
+        color_bar_green_border = "rgb(135,207,161)"
+        color_bar_red = "rgba(255, 0, 240, 0.2)"
+        color_bar_red_border = "rgb(255, 0, 240)"
+        color_button_best = "gold" // gold
+        color_button_top5 = "rgb(227,151,116)" // orange cream
+        color_button_bad = color_bar_red_border // red suit
+        color_line_total = "black"
+        color_line_EV = "rgb(244,153,128)" // gold
+        color_dot_luck = color_line_EV
+        color_solver_title_bg = "grey"
+        color_solver_title_text = "gold"
+    }
+
+    if(type == 1) {
+        // Beach: 
+        color_bg = "rgb(244,236,214)"
+        color_text = "rgb(136,183,181)"
+        color_icon = color_text
+        color_switch = color_bg // button switch for type
+        color_table_start = "rgb(167,202,177)"
+        color_start_switch = color_table_start
+        color_button = "silver"
+        color_button_text = color_text
+        color_bar_green = "rgba(135,207,161,0.2)" //"rgba(99,83,91,0.2)"
+        color_bar_green_border = "rgb(135,207,161)"
+        color_bar_red = "rgba(223,146,142,0.2)"
+        color_bar_red_border = "rgb(223,146,142)"
+        color_button_best = "gold" // gold
+        color_button_top5 = "rgb(227,151,116)" // orange cream
+        color_button_bad = color_bar_red_border // red suit
+        color_line_total = "rgb(56,29,42)"
+        color_line_EV = "rgb(238,66,102)" // gold
+        color_dot_luck = color_line_EV
+        color_solver_title_bg = "rgb(242, 218, 206)"
+        color_solver_title_text = "black"
+    }
+
+    if(type == 2) {
+        // Vintage: 
+        color_bg = "rgb(126,150,128)"
+        color_text = "rgb(234,181,149)"
+        color_icon = color_text
+        color_switch = color_bg // button switch for type
+        color_table_start = "rgb(127,97,111)"
+        color_start_switch = color_table_start
+        color_button = "silver"
+        color_button_text = color_text
+        color_bar_green = "rgba(17, 75, 95, 0.2)"
+        color_bar_green_border = "rgb(17, 75, 95)"
+        color_bar_red = "rgba(25,18,8, 0.2)"
+        color_bar_red_border = "rgb(25,18,8)"
+        color_button_best = "gold" // gold
+        color_button_top5 = "rgb(227,151,116)" // orange cream
+        color_button_bad = color_bar_red // red suit
+        color_line_total = "silver"
+        color_line_EV = "rgb(234,181,149)" // gold
+        color_dot_luck = color_line_EV
+        color_solver_title_bg = "grey"
+        color_solver_title_text = "gold"
+    }
+
+    if(type == 3) {
+        // Zen: 
+        color_bg = "rgb(206,229,242)"
+        color_text = "rgb(124,152,179)"
+        color_icon = color_text
+        color_switch = color_bg // button switch for type
+        color_table_start = "rgb(172,203,225)"
+        color_start_switch = color_table_start
+        color_button = "silver"
+        color_button_text = color_text
+        color_bar_green = "rgba(252, 171, 100, 0.2)"
+        color_bar_green_border = "rgb(252, 171, 100)"
+        color_bar_red = "rgba(118,97,83, 0.2)"
+        color_bar_red_border = "rgba(118,97,83)"
+        color_button_best = "gold" // gold
+        color_button_top5 = "rgb(227,151,116)" // orange cream
+        color_button_bad = color_bar_red_border // red suit
+        color_line_total = "grey"
+        color_line_EV = "rgb(200,173,85)" // gold
+        color_dot_luck = color_line_EV
+        color_solver_title_bg = "rgb(242, 218, 206)"
+        color_solver_title_text = "black"
+    }
+
+    if(type == 4) {
+        // Return to Classic: 
+        color_bg = "rgb(30,30,84)" // entire backdrop
+        color_text = "white"
+        color_icon = color_text
+        color_switch = color_bg // button switch for type
+        color_table_start = "rgb(66,126,96)"
+        color_start_switch = color_table_start
+        color_button = "silver"
+        color_button_text = color_text
+        color_bar_green = "rgba(0, 255, 128, 0.2)"
+        color_bar_green_border = "rgb(0, 255, 128)"
+        color_bar_red = "rgba(215, 38, 56, 0.2)"
+        color_bar_red_border = "rgba(215, 37, 56)"
+        color_button_best = "gold" // gold
+        color_button_top5 = "rgb(227,151,116)" // orange cream
+        color_button_bad = color_bar_red_border // red suit
+        color_line_total = "white"
+        color_line_EV = "gold" // gold
+        color_dot_luck = color_line_EV
+        color_solver_title_bg = "grey"
+        color_solver_title_text = "gold"
+    }
+
+    bg_switch.style.backgroundColor = color_bg
+    bg_switch.style.color = color_text
+    if(timesDealt == 1 || timesDealt == 0) {main_table.style.backgroundColor = color_table_start}
+    document.body.style.backgroundColor = color_switch
+    payout_table.style.color = color_text
+    header.style.color = color_text
+    sidebar_open.style.color = color_icon
+    settings_menu.style.color = color_icon
+    solver_section.style.color = color_text
+    extra_hands.style.color = color_text
+
+    // Update the Best Decision button
+    if(visual_decision.innerHTML == "BEST DECISION") {visual_decision.style.backgroundColor = color_button_best}
+    if(visual_decision.innerHTML == "CLOSE") {visual_decision.style.backgroundColor = color_button_top5}
+    if(visual_decision.innerHTML == "BE BETTER") {visual_decision.style.backgroundColor = color_button_bad}
+    if(visual_decision.innerHTML == "Best Decision: Pending..."){visual_decision.style.backgroundColor = color_button}
+
+    // Update the Extra Hand backgrounds, different depending on mode
+    for(let k = 0; k < 8; k++) {
+        var extra_hand = document.getElementById("hand_type"+k)
+
+        if(extra_hand.style.backgroundColor != "grey" && 
+            extra_hand.style.backgroundColor != "rgb(242, 218, 206)" && 
+            extra_hand.style.backgroundColor != "silver") {
+            extra_hand.style.backgroundColor = color_bg
+        } else {
+            extra_hand.style.backgroundColor = color_solver_title_bg
+        }
+        
+        if(extra_hand.style.color != "gold" &&
+            extra_hand.style.color != "black" &&
+            extra_hand.style.color != "rgb(123,30,122)") {
+            extra_hand.style.color = color_text
+        } else {
+            extra_hand.style.color = color_solver_title_text
+        }
+    }
+
+    // Update the graphs
+    var chart_actual_line = myChart.data.datasets[0].borderColor // current total
+    var chart_bars = myChart.data.datasets[1] // bars
+    var chart_EV_line = myChart.data.datasets[2].borderColor // EV total
+    var chart_luck = myChart.data.datasets[3].borderColor // luck indicator
+
+    for (let i = 0; i <= round; i++) {
+        chart_actual_line[i] = color_line_total;
+        chart_EV_line[i] = color_line_EV;
+        chart_luck[i] = color_dot_luck;
+
+        if(chart_bars.data[i] >= 0) {
+            chart_bars.backgroundColor[i] = color_bar_green
+            chart_bars.borderColor[i] = color_bar_green_border
+        } else {
+            chart_bars.backgroundColor[i] = color_bar_red
+            chart_bars.borderColor[i] = color_bar_red_border
+        }
+
+    }
+
+    myChart.update()
+    
 }
 
 function gameFlow() {
+
+    const game_button = document.getElementById("game_start_switch")
+
+    // Change Start Button Depending on Game Phase
+    if(game_button.innerText == "START GAME" || game_button.innerText == "START ROUND") {
+        game_button.innerText = "LOCK IN"
+    } else {
+        game_button.innerText = "START ROUND"
+    }
 
     if(timesDealt != 1) {
 
         // Beginning of the Game. Increment Round
         round += 1;
         document.getElementById("round_indicator").innerHTML = "Round: " + round;
-
-        // Clear increments
-        clearRoundIncrement();
 
         // Create new deck
         deck = new Deck();
@@ -248,20 +711,18 @@ function gameFlow() {
         final_hand_suits = []
         final_hand_values = []
 
+        // Empty top solver solution
+        solverTopSolutions = []
+
         // Start New Round
         newRound(deck)
 
-        // Transition the cards into view using a flip effect
-        // for(let i = 0; i < 5; i++) {
-        //     var playerHand = document.querySelector('.player_slot'+i);
-        //     var manual_transition_delay = i*0.2 + "s"
-        //     playerHand.style.transition = "0.75s"
-        //     playerHand.style.transitionDelay = manual_transition_delay;
-        //     playerHand.style.transform = "rotateY(-180deg)"
-        // }
-
-        // if(solver_switch == 1) {EVcalculator()}
+        // Run Solver
         EVcalculator()
+
+        // Run solver display once for the best decision calcs
+        displayEV()
+        removeSolver()
 
         return num_hands;
     } else {
@@ -292,15 +753,24 @@ function removeSolver() {
 
 function newRound(deck) {
 
-    // Change poker table from grey to green again
-    document.getElementById("main_hand").style.backgroundColor = "rgb(66,126,96)"
+    // Change poker table from locked-in grey to original table by mode
+    document.getElementById("main_hand").style.backgroundColor = color_table_start
+
+    // Update the text in Round Score
+    document.getElementById("round_score").innerHTML = "Round Score: TBD";
 
     removeSolver()
 
     // Delete old extra card slots and hand strength slots
     // if(num_hands > 1) {
         for (let k = 1; k < 9; k++) {
+
             var hand_num = k - 1;
+
+            // Remove extra visuals for premium and paying hands
+            document.getElementById("hand_type"+hand_num).style.backgroundColor = color_bg
+            document.getElementById("hand_type"+hand_num).style.color = color_text
+
             for (let i = 0; i < 5; i++) {
                 var oldCards = document.getElementById('extrahand'+hand_num+'_slot'+i);
                 var oldStrength = document.getElementById('hand_type'+hand_num);
@@ -312,18 +782,39 @@ function newRound(deck) {
         }
     // }
 
-    // Delete old cards in HTML and create new cards
+    // Delete old cards and solver variables in HTML
     for (let i = 0; i < 5; i++) {
         if (timesDealt != 0) {
-            var oldCards = document.getElementById("card"+i);
-            var oldStrength = document.getElementById("hand_type")
+            const oldCards = document.getElementById("card"+i);
+            const oldStrength = document.getElementById("hand_type")
+            const actualCards = document.getElementById("actual_"+i);
+            const personalCards = document.getElementById("personal_"+i);
+            const topCards = document.getElementById("top_"+i);
+
             oldCards.remove()
             oldStrength.innerHTML = " "
+            actualCards.remove()
+            personalCards.remove()
+            topCards.remove()
+
+            solverTopSolutions.pop()
         }
+
+        // Create new cards
         var playerHand = document.querySelector('.player_slot'+i);
         var dealt_card = deck.cards.pop();
 
+        // Variables for the best decision pop-up
+        const actual_hand_body = document.getElementById('actual_hand_body')
+        const person_hand_body = document.getElementById('person_hand_body')
+        const top_body = document.getElementById('top_body')
+
         playerHand.appendChild(dealt_card.getHTMLfirstRound(i));
+
+        // Add the 5 cards to the: actual hand, player decision, top decision sections of the tooltip
+        actual_hand_body.appendChild(dealt_card.getHTML_actual(i));
+        person_hand_body.appendChild(dealt_card.getHTML_personal(i));
+        top_body.appendChild(dealt_card.getHTML_top(i));
 
         // Convert characters to numeric values before entering the analysis arrays
         if (dealt_card.value == "T") {dealt_card.value = "10"}
@@ -336,6 +827,15 @@ function newRound(deck) {
         starting_hand_suits.push(dealt_card.suit);
 
     }
+
+    // Reset best decision indicator
+    var visual_decision_evaluator = document.getElementById('best_decision_indicator_button')
+    visual_decision_evaluator.style.backgroundColor = "silver"
+    visual_decision_evaluator.innerHTML = "Best Decision: Pending..."
+    visual_decision_evaluator.style.textAlign =  "center"
+
+    var visual_decision_tooltip = document.getElementById('best_decision_tooltip')
+    visual_decision_tooltip.style.opacity = "0"
 
     timesDealt = 1;
     return deck, starting_hand_suits, starting_hand_values, num_hands;
@@ -367,6 +867,9 @@ function finalRound(deck) {
             for (let i = 0; i < 5; i++) {
 
                 var replace_card = document.getElementById('card'+i);
+
+                var personalCards = document.getElementById("personal_"+i);
+                var topCards = document.getElementById("top_"+i);
 
                 // **For cards to be replaced
                 if(replace_card.style.backgroundColor == "white" || replace_card.style.backgroundColor == "rbg(255, 255, 255)" || replace_card.style.backgroundColor == "" ) {
@@ -405,9 +908,18 @@ function finalRound(deck) {
 
                     // For Extra Hands
                     add_back.push(dealt_card);
+
+                    // Make the discarded card grey for decision comparison
+                    personalCards.style.backgroundColor = "grey"
+                    topCards.style.backgroundColor = solverTopSolutions[i]
+
                 } else {
                     // Push a '0' signal for hold
                     final_hand_signal.push(0)
+
+                    // Make the held cards gold for decision comparison
+                    personalCards.style.backgroundColor = "gold"
+                    topCards.style.backgroundColor = solverTopSolutions[i]
                 }
 
                 if(replace_card.style.backgroundColor == "gold") {replace_card.classList.add("unclickable")}
@@ -423,47 +935,11 @@ function finalRound(deck) {
                     deck.shuffle()
                 }
             }
-
-            // Transition the cards into view using a flip effect
-
-            // var z = 0;
-
-            // for(let i = 0; i < 5; i++) {
-            //     var playerHand = document.querySelector('.player_slot'+i);
-            //     var cardSlot = document.getElementById('card'+i);
-
-            //     if(cardSlot.style.backgroundColor != "gold") {
-            //         var manual_transition_delay = z*0.2 + "s"
-            //         playerHand.style.transition = "0.75s"
-            //         console.log(z)
-            //         playerHand.style.transitionDelay = manual_transition_delay;
-            //         playerHand.style.transform = "rotateY(180deg)"
-            //         z += 1;
-            //     }
-            // }
-
-
         }
-
-        // var j = 0
-        // Transition the non-gold cards into view
-        // for(let i = 0; i < 5; i++) {
-        //     var playerHand = document.getElementById('card'+i);
-        //     console.log(playerHand.style.backgroundColor)
-
-        //     if(playerHand.style.backgroundColor != "gold") {
-        //         var manual_transition_delay = j + "s"
-        //         playerHand.style.transition = "all 0.75s"
-        //         playerHand.style.transitionDelay = manual_transition_delay;
-        //         playerHand.style.transform = "rotateY(-180deg)"
-        //         j+= 1;
-        //         console.log("transitioned the " + i + "th card.")
-        //     }
-        // }
 
         if (k > 0) {
 
-            // For extra hands, populate the bottom area area
+            // For extra hands
             for (let i = 0; i < 5; i++) {
 
                 var replace_card = document.getElementById('card'+i);
@@ -524,15 +1000,34 @@ function finalRound(deck) {
             }
         }
 
+        // Initialize for the Classic variant.
+        document.getElementById('extra_hands').style.color = color_text;
+
+        // Change the color of the main table
+        document.getElementById("main_hand").style.backgroundColor = "grey"
+
+        // Hand score processing
         handProcessing();
         handScore();
 
-        document.getElementById("main_hand").style.backgroundColor = "grey"
-
+        // Extra hand visual processing
         if (k == 0) {document.getElementById("hand_type").innerHTML = hand_strength}
-        if (extra_hand_num >= 0) {document.getElementById("hand_type"+extra_hand_num).innerHTML = hand_strength}
 
-        roundHandIncrement(hand_strength);
+        if (extra_hand_num >= 0) {
+
+            document.getElementById("hand_type"+extra_hand_num).style.backgroundColor = color_bg
+            document.getElementById("hand_type"+extra_hand_num).innerHTML = hand_strength
+
+            if(final_score > 0) {
+                document.getElementById("hand_type"+extra_hand_num).style.backgroundColor = color_solver_title_bg
+            }
+            if(final_score >= 5) {
+                document.getElementById("hand_type"+extra_hand_num).style.color = color_solver_title_text
+                document.getElementById("hand_type"+extra_hand_num).style.fontWeight = 'bold'
+            }
+
+
+        }
         
         round_score += final_score - 1;
         
@@ -540,6 +1035,7 @@ function finalRound(deck) {
         if (k == num_hands - 1) {
             agg_score += round_score;
             expected_total += Math.max(...top5_EV_hand)*num_hands - num_hands;
+
 
             // Check for Best Decision + Streak
             var array_check = 0
@@ -560,7 +1056,11 @@ function finalRound(deck) {
             best_decision_perc = Math.round(best_decision_total*100/round)
 
             document.getElementById("best_decision_streak").innerHTML = "Streak of #1 Option: " + best_decision_streak;
-            document.getElementById("perc_best_decision").innerHTML = "Best Decision: " + best_decision_perc + "%"; 
+            document.getElementById("perc_best_decision_1").innerHTML = "Best Decision: " + best_decision_perc + "%";
+            document.getElementById("perc_best_decision_2").innerHTML = "Best Decision: " + best_decision_perc + "%"; 
+             
+            document.getElementById("round_score").innerHTML = "Round Score: " + round_score;
+            document.getElementById("total_score").innerHTML = "Total Score: " + agg_score;
 
             // Check for Actual Decision Luck
             var actual_decision;
@@ -584,11 +1084,34 @@ function finalRound(deck) {
 
             var final_luck_text;
 
-            if(actual_luck > 0) {final_luck_text = "LUCKY"}
-            if(actual_luck == 0) {final_luck_text = "NEUTRAL"}
-            if(actual_luck < 0) {final_luck_text = "UNLUCKY"}
+            // Display if lucky or not. Benchmark is 0.5 * num_hands
+            if(actual_luck > 0.5*num_hands) {final_luck_text = "LUCKY"}
+            if(actual_luck <= 0.5*num_hands && actual_luck >= -0.5*num_hands) {final_luck_text = "FAIR"}
+            if(actual_luck < -0.5*num_hands) {final_luck_text = "UNLUCKY"}
 
             document.getElementById("final_luck").innerHTML = "Last Outcome: " + final_luck_text;
+
+            // Figure out if decision was best, top 5, or outside it
+
+            var max_value_lost = Math.max(...top5_EV_hand) - actual_decision_EV;
+            var top5_value_lost = actual_decision_EV - Math.min(...top5_EV_hand);
+            var visual_decision = document.getElementById("best_decision_indicator_button")
+            var visual_decision_tooltip = document.getElementById("best_decision_tooltip")
+
+            visual_decision_tooltip.style.opacity = "1"
+
+            if(max_value_lost == 0) {
+                visual_decision.style.backgroundColor = color_button_best
+                visual_decision.innerHTML = "BEST DECISION"
+            } else if(top5_value_lost > 0 ) {
+                visual_decision.style.backgroundColor = color_button_top5
+                visual_decision.innerHTML = "CLOSE"
+            } else {
+                visual_decision.style.backgroundColor = color_button_bad
+                visual_decision.innerHTML = "BE BETTER"
+            }
+
+            visual_decision.style.textAlign =  "center"
 
             // Update Graph
             addData(myChart, round, agg_score, round_score, expected_total, actual_luck)
@@ -879,68 +1402,6 @@ function straight() {
     return false
 }
 
-// ROUND SCORE INCREMENT FUNCTIONS
-
-function roundHandIncrement(hand) {
-
-    if (hand == "Natural Royal Flush") {innerTextIncrement("nat_rf")}
-    if (hand == "Four Deuces") {innerTextIncrement("four_d")}
-    if (hand == "Wild Royal Flush") {innerTextIncrement("wild_rf")}
-    if (hand == "Five of a Kind") {innerTextIncrement("fives")}
-    if (hand == "Straight Flush") {innerTextIncrement("sf")}
-    if (hand == "Four of a Kind") {innerTextIncrement("quads")}
-    if (hand == "Full House") {innerTextIncrement("boat")}
-    if (hand == "Flush") {innerTextIncrement("fl")}
-    if (hand == "Straight") {innerTextIncrement("str")}
-    if (hand == "Three of a Kind") {innerTextIncrement("trips")}
-    if (hand == "Two Pair") {innerTextIncrement("two_p")}
-    if (hand == "One Pair") {innerTextIncrement("one_p")}
-    if (hand == "High Card") {innerTextIncrement("hc")}
-
-}
-
-function innerTextIncrement(id_hand) {
-    var total_hand = document.getElementById(id_hand).innerText;
-    var value_total = parseInt(total_hand);
-
-    var round_id_inc = "inc_"+ id_hand;
-    var round_hand = document.getElementById(round_id_inc).innerHTML;
-    var value_round = parseInt(round_hand);
-    
-    value_total += 1;
-    value_round += 1;
-
-    // For the aggregate hand count
-    document.getElementById(id_hand).innerText = value_total;
-
-    // For the round increment count
-    document.getElementById(round_id_inc).innerText = "+"+value_round;
-    document.getElementById(round_id_inc).style.color = "gold";
-    document.getElementById(round_id_inc).style.visibility = "visible";
-
-}
-
-function clearRoundIncrement () {
-    clearIncrement("inc_nat_rf")
-    clearIncrement("inc_four_d")
-    clearIncrement("inc_wild_rf")
-    clearIncrement("inc_fives")
-    clearIncrement("inc_sf")
-    clearIncrement("inc_quads")
-    clearIncrement("inc_boat")
-    clearIncrement("inc_fl")
-    clearIncrement("inc_str")
-    clearIncrement("inc_trips")
-    clearIncrement("inc_two_p")
-    clearIncrement("inc_one_p")
-    clearIncrement("inc_hc")
-}
-
-function clearIncrement(inc_id) {
-    document.getElementById(inc_id).innerText = 0;
-    document.getElementById(inc_id).style.visibility = "hidden";
-}
-
 // EV CALCULATOR FUNCTIONS
 
 function convertBroadtoNum(value) {
@@ -1001,6 +1462,8 @@ function EVcalculator() {
 
                         if(numHeld == 5) {
 
+                            //console.time("Hold 5")
+
                             final_hand_suits = []
                             final_hand_values = []
 
@@ -1019,10 +1482,15 @@ function EVcalculator() {
 
                             handProcessingEV()
                             handCount()
+
+                            //console.timeEnd("Hold 5")
                         }
 
                         // Hold cards if 0, new card if 1
                         if(numHeld == 4) {
+
+                            //console.time("Hold 4")
+
                             for(let a = 0; a < 47; a++) {
 
                                 final_hand_suits = []
@@ -1051,10 +1519,15 @@ function EVcalculator() {
                                 }
                                 handProcessingEV()
                                 handCount()
+
                             }
+
+                            //console.timeEnd("Hold 4")
                         }
 
                         if(numHeld == 3) {
+
+                            //console.time("Hold 3")
                             for(let a = 0; a < 47; a++) {
                                 for(let b = a + 1; b < 47; b++) {
 
@@ -1103,9 +1576,13 @@ function EVcalculator() {
                                     handCount()
                                 }
                             }
+
+                            //console.timeEnd("Hold 3")
                         }
 
                         if(numHeld == 2) {
+
+                            //console.time("Hold 2")
                             for(let a = 0; a < 47; a++) {
                                 for(let b = a + 1; b < 47; b++) {
                                     for(let c = b + 1; c < 47; c++) {
@@ -1166,9 +1643,14 @@ function EVcalculator() {
                                     }
                                 }
                             }
+
+                            //console.timeEnd("Hold 2")
                         }
 
                         if(numHeld == 1) {
+
+                            //console.time("Hold 1")
+
                             for(let a = 0; a < 47; a++) {
                                 for(let b = a + 1; b < 47; b++) {
                                     for(let c = b + 1; c < 47; c++) {
@@ -1242,9 +1724,13 @@ function EVcalculator() {
                                     }
                                 }
                             }
+
+                            //console.timeEnd("Hold 1")
                         }
 
                         if(numHeld == 0) {
+
+                            //console.time("Hold 0")
 
                             // Hardcoded option:
 
@@ -1349,6 +1835,8 @@ function EVcalculator() {
                             //         }
                             //     }
                             // }
+
+                            //console.timeEnd("Hold 0")
                         }
                         
                         // Summary per configuration
@@ -1646,6 +2134,13 @@ function displayEV() {
 
             solverHand.appendChild(getHTML_solverCards(starting_hand_suits[j],temp_value[0],j,top5_EV_configuration[i][j],i));
 
+            if(i == 0 && top5_EV_configuration[i][j] == 1){
+                solverTopSolutions.push("grey")
+            }
+            if(i == 0 && top5_EV_configuration[i][j] == 0){
+                solverTopSolutions.push("gold")
+            }
+
         }
 
         // Introduce the Stats to each hand
@@ -1654,13 +2149,14 @@ function displayEV() {
             topN_handStrength(top5_EV_combinations[i])
 
             if (k == 0) {solverHand.appendChild(getHTML_solverStats("EV", top5_EV_hand[i]))}
-            if (k == 1) {solverHand.appendChild(getHTML_solverStats("P(win)", Math.round(top5_EV_combinations[i][1]/top5_EV_combinations[i][0]*1000)/10))}
-            if (k == 2) {solverHand.appendChild(getHTML_solverStats("P(SF+)", Math.round(top5_EV_combinations[i][2]/top5_EV_combinations[i][0]*1000)/10))}
+            if (k == 1) {solverHand.appendChild(getHTML_solverStats("P(Win)", Math.round(top5_EV_combinations[i][1]/top5_EV_combinations[i][0]*1000)/10))}
+            if (k == 2) {solverHand.appendChild(getHTML_solverStats("P(Prem.)", Math.round(top5_EV_combinations[i][2]/top5_EV_combinations[i][0]*1000)/10))}
             if (k == 3) {solverHand.appendChild(getHTML_solverStats(first_text, Math.round(first_value/top5_EV_combinations[i][0]*1000)/10))}
             if (k == 4) {solverHand.appendChild(getHTML_solverStats(second_text, Math.round(second_value/top5_EV_combinations[i][0]*1000)/10))}
             if (k == 5) {solverHand.appendChild(getHTML_solverStats(third_text, Math.round(third_value/top5_EV_combinations[i][0]*1000)/10))}
         }
     }
+
 }
 
 function solverTextTopN(rank) {
@@ -1715,442 +2211,6 @@ function topN_handStrength(combinations) {
 
 }
 
-function luckCalc() {
-
-    var newDeck = new Deck()
-
-    // Create a copy of the deck
-    var deck_holder = []
-
-    for(let i = 0; i < 52; i++){
-        deck_holder.push(newDeck.cards.pop())
-    }
-
-    // Create slots for the value and suit of the cards to be drawn
-    var next_card_suit, next_card_value
-
-    // Create maxEV slot
-    var allEV = []
-    var allEV_hand = []
-    var maxEV_hand, maxEV;
-
-    // Deal Starting Hand
-
-    var max_deal = 5;
-
-    for(let v = 0; v < max_deal; v++){
-        for(let w = v + 1; w < max_deal; w++) {
-            for(let x = w + 1; x < max_deal; x++) {
-                for(let y = x + 1; y < max_deal; y++) {
-                    for(let z = y + 1; z < max_deal; z++) {
-                        starting_hand_suits = [deck_holder[v].suit, deck_holder[w].suit, deck_holder[x].suit, deck_holder[y].suit, deck_holder[z].suit]
-                        starting_hand_values = [deck_holder[v].value, deck_holder[w].value, deck_holder[x].value, deck_holder[y].value, deck_holder[z].value]
-
-                        //console.log(starting_hand_values)
-                        // console.log(starting_hand_suits)
-
-                        allEV_hand = []
-
-                        // Generate All Combinations of Hands
-                        for(let i = 0; i < 2; i++) {
-                            for(let j = 0; j < 2; j++) {
-                                for(let k = 0; k < 2; k++) {
-                                    for(let l = 0; l < 2; l++) {
-                                        for(let m = 0; m < 2; m++) {
-
-                                            numHeld = 5 - (i + j + k + l + m);
-                                            var heldCards = [i, j, k, l, m]
-                                            var cardReplaced = 0;
-
-                                            nat_rf_count = 0
-                                            four_d_count = 0
-                                            wild_rf_count = 0
-                                            five_count = 0
-                                            sf_count = 0
-                                            quad_count = 0
-                                            boat_count = 0
-                                            flush_count = 0
-                                            str_count = 0
-                                            trips_count = 0
-                                            two_pair_count = 0
-                                            one_pair_count = 0
-                                            highcard_count = 0
-
-                                            if(numHeld == 5) {
-
-                                                final_hand_suits = []
-                                                final_hand_values = []
-
-                                                for(let n = 0; n < 5; n++) {
-
-                                                    next_card_suit = starting_hand_suits[n]
-                                                    next_card_value = starting_hand_values[n]
-
-                                                    // Convert Broadway to Numeric
-                                                    next_card_value = convertBroadtoNum(next_card_value)
-                                                    
-                                                    final_hand_values.push(next_card_value)
-                                                    final_hand_suits.push(next_card_suit)
-                                                    
-                                                }
-
-                                                handProcessingEV()
-                                                handCount()
-                                            }
-
-                                            // Hold cards if 0, new card if 1
-                                            if(numHeld == 4) {
-                                                for(let a = 0; a < 47; a++) {
-
-                                                    final_hand_suits = []
-                                                    final_hand_values = []
-
-                                                    for(let n = 0; n < 5; n++) {
-                                                        if(heldCards[n] == 0) {
-                                                            next_card_suit = starting_hand_suits[n]
-                                                            next_card_value = starting_hand_values[n]
-
-                                                            // Convert Broadway to Numeric
-                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                            
-                                                            final_hand_values.push(next_card_value)
-                                                            final_hand_suits.push(next_card_suit)
-                                                        } else {
-                                                            next_card_suit = deck_holder[a].suit
-                                                            next_card_value = deck_holder[a].value
-
-                                                            // Convert Broadway to Numeric
-                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                            
-                                                            final_hand_values.push(next_card_value)
-                                                            final_hand_suits.push(next_card_suit)
-                                                        }
-                                                    }
-                                                    handProcessingEV()
-                                                    handCount()
-                                                }
-                                            }
-
-                                            if(numHeld == 3) {
-                                                for(let a = 0; a < 47; a++) {
-                                                    for(let b = a + 1; b < 47; b++) {
-
-                                                        cardReplaced = 0;
-
-                                                        final_hand_suits = []
-                                                        final_hand_values = []
-
-                                                        for(let n = 0; n < 5; n++) {
-                                                            if(heldCards[n] == 0) {
-                                                                
-                                                                next_card_suit = starting_hand_suits[n]
-                                                                next_card_value = starting_hand_values[n]
-
-                                                                // Convert Broadway to Numeric
-                                                                next_card_value = convertBroadtoNum(next_card_value)
-                                                                
-                                                                final_hand_values.push(next_card_value)
-                                                                final_hand_suits.push(next_card_suit)
-                                                            }  
-                                                            else if(heldCards[n] == 1 && cardReplaced == 0) {
-                                                                next_card_suit = deck_holder[a].suit
-                                                                next_card_value = deck_holder[a].value
-
-                                                                // Convert Broadway to Numeric
-                                                                next_card_value = convertBroadtoNum(next_card_value)
-                                                                
-                                                                final_hand_values.push(next_card_value)
-                                                                final_hand_suits.push(next_card_suit)
-                                                                cardReplaced += 1;  
-                                                            }
-                                                            else {
-                                                                next_card_suit = deck_holder[b].suit
-                                                                next_card_value = deck_holder[b].value
-
-                                                                // Convert Broadway to Numeric
-                                                                next_card_value = convertBroadtoNum(next_card_value)
-                                                                
-                                                                final_hand_values.push(next_card_value)
-                                                                final_hand_suits.push(next_card_suit)
-                                                            }
-                                                            
-                                                        }
-                                                        
-                                                        handProcessingEV()
-                                                        handCount()
-                                                    }
-                                                }
-                                            }
-
-                                            if(numHeld == 2) {
-                                                for(let a = 0; a < 47; a++) {
-                                                    for(let b = a + 1; b < 47; b++) {
-                                                        for(let c = b + 1; c < 47; c++) {
-
-                                                            cardReplaced = 0;
-
-                                                            final_hand_suits = []
-                                                            final_hand_values = []
-
-                                                            for(let n = 0; n < 5; n++) {
-                                                                if(heldCards[n] == 0) {
-                                                                    
-                                                                    next_card_suit = starting_hand_suits[n]
-                                                                    next_card_value = starting_hand_values[n]
-
-                                                                    // Convert Broadway to Numeric
-                                                                    next_card_value = convertBroadtoNum(next_card_value)
-                                                                    
-                                                                    final_hand_values.push(next_card_value)
-                                                                    final_hand_suits.push(next_card_suit)
-                                                                }  
-                                                                else if(heldCards[n] == 1 && cardReplaced == 0) {
-                                                                    next_card_suit = deck_holder[a].suit
-                                                                    next_card_value = deck_holder[a].value
-
-                                                                    // Convert Broadway to Numeric
-                                                                    next_card_value = convertBroadtoNum(next_card_value)
-                                                                    
-                                                                    final_hand_values.push(next_card_value)
-                                                                    final_hand_suits.push(next_card_suit)
-                                                                    cardReplaced += 1;
-                                                                }
-                                                                else if(heldCards[n] == 1 && cardReplaced == 1) {
-                                                                    next_card_suit = deck_holder[b].suit
-                                                                    next_card_value = deck_holder[b].value
-
-                                                                    // Convert Broadway to Numeric
-                                                                    next_card_value = convertBroadtoNum(next_card_value)
-                                                                    
-                                                                    final_hand_values.push(next_card_value)
-                                                                    final_hand_suits.push(next_card_suit)
-                                                                    cardReplaced += 1;
-                                                                }
-                                                                else {
-                                                                    next_card_suit = deck_holder[c].suit
-                                                                    next_card_value = deck_holder[c].value
-
-                                                                    // Convert Broadway to Numeric
-                                                                    next_card_value = convertBroadtoNum(next_card_value)
-                                                                    
-                                                                    final_hand_values.push(next_card_value)
-                                                                    final_hand_suits.push(next_card_suit)
-                                                                }
-                                                            }
-
-                                                            handProcessingEV()
-                                                            handCount()
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            if(numHeld == 10) {
-                                                for(let a = 0; a < 47; a++) {
-                                                    for(let b = a + 1; b < 47; b++) {
-                                                        for(let c = b + 1; c < 47; c++) {
-                                                            for(let d = c + 1; d < 47; d++) {
-
-                                                                cardReplaced = 0;
-
-                                                                final_hand_suits = []
-                                                                final_hand_values = []
-
-                                                                for(let n = 0; n < 5; n++) {
-                                                                    if(heldCards[n] == 0) {
-                                                                        
-                                                                        next_card_suit = starting_hand_suits[n]
-                                                                        next_card_value = starting_hand_values[n]
-
-                                                                        // Convert Broadway to Numeric
-                                                                        next_card_value = convertBroadtoNum(next_card_value)
-                                                                        
-                                                                        final_hand_values.push(next_card_value)
-                                                                        final_hand_suits.push(next_card_suit)
-                                                                    }  
-                                                                    else if(heldCards[n] == 1 && cardReplaced == 0) {
-                                                                        next_card_suit = deck_holder[a].suit
-                                                                        next_card_value = deck_holder[a].value
-
-                                                                        // Convert Broadway to Numeric
-                                                                        next_card_value = convertBroadtoNum(next_card_value)
-                                                                        
-                                                                        final_hand_values.push(next_card_value)
-                                                                        final_hand_suits.push(next_card_suit)
-                                                                        cardReplaced += 1;
-                                                                    }
-                                                                    else if(heldCards[n] == 1 && cardReplaced == 1) {
-                                                                        next_card_suit = deck_holder[b].suit
-                                                                        next_card_value = deck_holder[b].value
-
-                                                                        // Convert Broadway to Numeric
-                                                                        next_card_value = convertBroadtoNum(next_card_value)
-                                                                        
-                                                                        final_hand_values.push(next_card_value)
-                                                                        final_hand_suits.push(next_card_suit)
-                                                                        cardReplaced += 1;
-                                                                    }
-                                                                    else if(heldCards[n] == 1 && cardReplaced == 2) {
-                                                                        next_card_suit = deck_holder[c].suit
-                                                                        next_card_value = deck_holder[c].value
-
-                                                                        // Convert Broadway to Numeric
-                                                                        next_card_value = convertBroadtoNum(next_card_value)
-                                                                        
-                                                                        final_hand_values.push(next_card_value)
-                                                                        final_hand_suits.push(next_card_suit)
-                                                                        cardReplaced += 1;
-                                                                    }
-                                                                    else {
-                                                                        next_card_suit = deck_holder[d].suit
-                                                                        next_card_value = deck_holder[d].value
-
-                                                                        // Convert Broadway to Numeric
-                                                                        next_card_value = convertBroadtoNum(next_card_value)
-                                                                        
-                                                                        final_hand_values.push(next_card_value)
-                                                                        final_hand_suits.push(next_card_suit)
-                                                                    }
-                                                                }
-
-                                                                handProcessingEV()
-                                                                handCount()
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            if(numHeld == 10) {
-                                                for(let a = 0; a < 47; a++) {
-                                                    for(let b = a + 1; b < 47; b++) {
-                                                        for(let c = b + 1; c < 47; c++) {
-                                                            for(let d = c + 1; d < 47; d++) {
-                                                                for(let e = d + 1; e < 47; e++) {
-
-                                                                    cardReplaced = 0;
-
-                                                                    final_hand_suits = []
-                                                                    final_hand_values = []
-
-                                                                    for(let n = 0; n < 5; n++) {
-                                                                        if(heldCards[n] == 0) {
-                                                                            
-                                                                            next_card_suit = starting_hand_suits[n]
-                                                                            next_card_value = starting_hand_values[n]
-
-                                                                            // Convert Broadway to Numeric
-                                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                                            
-                                                                            final_hand_values.push(next_card_value)
-                                                                            final_hand_suits.push(next_card_suit)
-                                                                        }  
-                                                                        else if(heldCards[n] == 1 && cardReplaced == 0) {
-                                                                            next_card_suit = deck_holder[a].suit
-                                                                            next_card_value = deck_holder[a].value
-
-                                                                            // Convert Broadway to Numeric
-                                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                                            
-                                                                            final_hand_values.push(next_card_value)
-                                                                            final_hand_suits.push(next_card_suit)
-                                                                            cardReplaced += 1;
-                                                                        }
-                                                                        else if(heldCards[n] == 1 && cardReplaced == 1) {
-                                                                            next_card_suit = deck_holder[b].suit
-                                                                            next_card_value = deck_holder[b].value
-
-                                                                            // Convert Broadway to Numeric
-                                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                                            
-                                                                            final_hand_values.push(next_card_value)
-                                                                            final_hand_suits.push(next_card_suit)
-                                                                            cardReplaced += 1;
-                                                                        }
-                                                                        else if(heldCards[n] == 1 && cardReplaced == 2) {
-                                                                            next_card_suit = deck_holder[c].suit
-                                                                            next_card_value = deck_holder[c].value
-
-                                                                            // Convert Broadway to Numeric
-                                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                                            
-                                                                            final_hand_values.push(next_card_value)
-                                                                            final_hand_suits.push(next_card_suit)
-                                                                            cardReplaced += 1;
-                                                                        }
-                                                                        else if(heldCards[n] == 1 && cardReplaced == 3) {
-                                                                            next_card_suit = deck_holder[d].suit
-                                                                            next_card_value = deck_holder[d].value
-
-                                                                            // Convert Broadway to Numeric
-                                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                                            
-                                                                            final_hand_values.push(next_card_value)
-                                                                            final_hand_suits.push(next_card_suit)
-                                                                            cardReplaced += 1;
-                                                                        }
-                                                                        else {
-                                                                            next_card_suit = deck_holder[e].suit
-                                                                            next_card_value = deck_holder[e].value
-
-                                                                            // Convert Broadway to Numeric
-                                                                            next_card_value = convertBroadtoNum(next_card_value)
-                                                                            
-                                                                            final_hand_values.push(next_card_value)
-                                                                            final_hand_suits.push(next_card_suit)
-                                                                        }
-                                                                    }
-
-                                                                    handProcessingEV()
-                                                                    handCount()
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            
-                                            // Summary per configuration
-                                            var total_options = nat_rf_count + four_d_count + wild_rf_count + five_count + sf_count + quad_count + boat_count + flush_count + str_count + trips_count + two_pair_count + one_pair_count + highcard_count;
-                                            var EV_option = nat_rf_count*score_chart.natural_royal_flush + four_d_count*score_chart.four_deuces + wild_rf_count*score_chart.wild_royal_flush + five_count*score_chart.five_kind + sf_count*score_chart.straight_flush + quad_count*score_chart.quads + boat_count*score_chart.boat + flush_count*score_chart.flush + str_count*score_chart.straight + trips_count*score_chart.trips;
-                                            
-                                            if(total_options != 0) {
-                                                maxEV_hand = Math.round(EV_option/total_options*1000)/1000;
-                                                allEV_hand.push(maxEV_hand)
-                                            }
-                                            
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        //console.log(allEV_hand)
-                        maxEV = Math.max(...allEV_hand)
-                        // console.log(maxEV)
-                        allEV.push(maxEV)
-
-                    }
-                }
-            }
-        }
-    }
-
-    return allEV
-}
-
-// how to minimize run time?
-// need to prevent the numHeld = 0 or 1 to run at all costs and predict it's value when it does run
-
-// var data = luckCalc()
-// console.log(data)
-
-// const csvWriter = createCsvWriter({
-//     path: 'luck.csv',
-//   });
-
-// csvWriter.writeRecords(data)
-
 // GRAPH
 
 function addData(chart, label, data1, data2, data3, data4) {
@@ -2159,21 +2219,1319 @@ function addData(chart, label, data1, data2, data3, data4) {
     chart.data.datasets[1].data.push(data2);
     chart.data.datasets[2].data.push(data3);
     if(data4 > 0) {
-        chart.data.datasets[3].data.push(8)
+        chart.data.datasets[3].data.push(10)
     }
     if(data4 < 0) {
-        chart.data.datasets[3].data.push(-8)
+        chart.data.datasets[3].data.push(-10)
     }
 
     if(data2 >= 0) {
-        chart.data.datasets[1].backgroundColor.push('rgba(0, 255, 128, 0.2)');
-        chart.data.datasets[1].borderColor.push('rgb(0, 255, 128)')
+        chart.data.datasets[1].backgroundColor.push(color_bar_green);
+        chart.data.datasets[1].borderColor.push(color_bar_green_border)
     }
     if(data2 < 0) {
-        chart.data.datasets[1].backgroundColor.push('rgba(255, 99, 132, 0.2)');
-        chart.data.datasets[1].borderColor.push('rgb(255, 99, 132)')
+        chart.data.datasets[1].backgroundColor.push(color_bar_red);
+        chart.data.datasets[1].borderColor.push(color_bar_red_border)
     }
     //console.log(chart.data.datasets[1].backgroundColor)
     //console.log(chart.data.datasets[1].data)
     chart.update();
+}
+
+// MODALS
+
+function openModal(modal) {
+    if(modal == null) return
+    modal.classList.add('active')
+}
+
+function closeModal(modal) {
+    if(modal == null) return
+    modal.classList.remove('active')
+}
+
+// POKER HANDS DISPLAY
+
+function pokerHands() {
+
+    // 1. Store a Straight
+
+    var pokerHandsView = document.getElementById("poker_hand_type0")
+    var pokerLabel = document.getElementById("poker_label0")
+    var pokerDescription = document.getElementById("poker_desc0")
+
+    pokerLabel.innerHTML = "Straight"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "heart_extra")
+    pokerCard1.innerText = "3"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "heart_extra")
+    pokerCard2.innerText = "4"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "5"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "6"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "diamond_extra")
+    pokerCard5.innerText = "7"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "Contains 5 cards of sequential rank. All of the cards must not have the exact same suit"
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 2. Store a Flush
+
+    var pokerHandsView = document.getElementById("poker_hand_type1")
+    var pokerLabel = document.getElementById("poker_label1")
+    var pokerDescription = document.getElementById("poker_desc1")
+
+    pokerLabel.innerHTML = "Flush"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "8"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "3"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "A"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "diamond_extra")
+    pokerCard4.innerText = "K"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "diamond_extra")
+    pokerCard5.innerText = "J"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "All 5 cards have the exact same suit. The cards must also not form a straight"
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 3. Store a Pair
+
+    var pokerHandsView = document.getElementById("poker_hand_type2")
+    var pokerLabel = document.getElementById("poker_label2")
+    var pokerDescription = document.getElementById("poker_desc2")
+
+    pokerLabel.innerHTML = "One Pair"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "spade_extra")
+    pokerCard1.innerText = "5"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "3"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "5"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "club_extra")
+    pokerCard4.innerText = "T"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "9"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "Contains two cards of the same rank, and three other cards containing three other ranks"
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 4. Store a Triple
+
+    var pokerHandsView = document.getElementById("poker_hand_type3")
+    var pokerLabel = document.getElementById("poker_label3")
+    var pokerDescription = document.getElementById("poker_desc3")
+
+    pokerLabel.innerHTML = "Three of a Kind"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "8"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "club_extra")
+    pokerCard2.innerText = "8"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "A"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "8"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "7"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "Contains three cards of the same rank, and two other cards containing two other ranks"
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 5. Store a Quad
+
+    var pokerHandsView = document.getElementById("poker_hand_type4")
+    var pokerLabel = document.getElementById("poker_label4")
+    var pokerDescription = document.getElementById("poker_desc4")
+
+    pokerLabel.innerHTML = "Four of a Kind"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "3"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "club_extra")
+    pokerCard2.innerText = "3"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "heart_extra")
+    pokerCard3.innerText = "3"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "3"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "heart_extra")
+    pokerCard5.innerText = "5"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "Contains all four cards of the same rank, and one other card"
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 6. Store a High Card
+
+    // var pokerHandsView = document.getElementById("poker_hand_type5")
+    // var pokerLabel = document.getElementById("poker_label5")
+    // var pokerDescription = document.getElementById("poker_desc5")
+
+    // pokerLabel.innerHTML = "High Card"
+
+    // var pokerCard1 = document.createElement("div");
+    // pokerCard1.classList.add("poker_card", "spade_extra")
+    // pokerCard1.innerText = "3"
+    // pokerHandsView.appendChild(pokerCard1)
+
+    // var pokerCard2 = document.createElement("div");
+    // pokerCard2.classList.add("poker_card", "heart_extra")
+    // pokerCard2.innerText = "A"
+    // pokerHandsView.appendChild(pokerCard2)
+
+    // var pokerCard3 = document.createElement("div");
+    // pokerCard3.classList.add("poker_card", "heart_extra")
+    // pokerCard3.innerText = "K"
+    // pokerHandsView.appendChild(pokerCard3)
+
+    // var pokerCard4 = document.createElement("div");
+    // pokerCard4.classList.add("poker_card", "club_extra")
+    // pokerCard4.innerText = "Q"
+    // pokerHandsView.appendChild(pokerCard4)
+
+    // var pokerCard5 = document.createElement("div");
+    // pokerCard5.classList.add("poker_card", "diamond_extra")
+    // pokerCard5.innerText = "9"
+    // pokerHandsView.appendChild(pokerCard5)
+
+    // var pokerHand_description = document.createElement("div")
+    // pokerHand_description.innerHTML = "A hand that doesn't contain a flush, straight, pair, three of a kind nor four of a kind."
+    // pokerDescription.appendChild(pokerHand_description)
+
+    // 7. Store a Two Pair
+
+    var pokerHandsView = document.getElementById("poker_hand_type6")
+    var pokerLabel = document.getElementById("poker_label6")
+    var pokerDescription = document.getElementById("poker_desc6")
+
+    pokerLabel.innerHTML = "Two Pair"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "spade_extra")
+    pokerCard1.innerText = "4"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "heart_extra")
+    pokerCard2.innerText = "5"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "5"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "club_extra")
+    pokerCard4.innerText = "4"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "diamond_extra")
+    pokerCard5.innerText = "9"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "Contains two different pairs of cards"
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 8. Store a Full House
+
+    var pokerHandsView = document.getElementById("poker_hand_type7")
+    var pokerLabel = document.getElementById("poker_label7")
+    var pokerDescription = document.getElementById("poker_desc7")
+
+    pokerLabel.innerHTML = "Full House"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "Q"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "heart_extra")
+    pokerCard2.innerText = "Q"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "J"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "heart_extra")
+    pokerCard4.innerText = "J"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "spade_extra")
+    pokerCard5.innerText = "Q"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "A combination of a three of a kind and a pair"
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 9. Store a Straight Flush
+
+    var pokerHandsView = document.getElementById("poker_hand_type8")
+    var pokerLabel = document.getElementById("poker_label8")
+    var pokerDescription = document.getElementById("poker_desc8")
+
+    pokerLabel.innerHTML = "Straight Flush"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "heart_extra")
+    pokerCard1.innerText = "Q"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "heart_extra")
+    pokerCard2.innerText = "J"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "heart_extra")
+    pokerCard3.innerText = "8"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "heart_extra")
+    pokerCard4.innerText = "T"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "heart_extra")
+    pokerCard5.innerText = "9"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "A combination of a straight and flush, but cannot specifically be the T-J-Q-K-A sequence."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 9. Store a Natural Royal Flush
+
+    var pokerHandsView = document.getElementById("poker_hand_type9")
+    var pokerLabel = document.getElementById("poker_label9")
+    var pokerDescription = document.getElementById("poker_desc9")
+
+    pokerLabel.innerHTML = "Natural Royal Flush"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "spade_extra")
+    pokerCard1.innerText = "Q"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "spade_extra")
+    pokerCard2.innerText = "K"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "spade_extra")
+    pokerCard3.innerText = "T"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "J"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "spade_extra")
+    pokerCard5.innerText = "A"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "A hand containing A, K, Q, J and T that is also a flush & contains no deuces."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 10. Store a Wild Royal Flush
+
+    var pokerHandsView = document.getElementById("poker_hand_type10")
+    var pokerLabel = document.getElementById("poker_label10")
+    var pokerDescription = document.getElementById("poker_desc10")
+
+    pokerLabel.innerHTML = "Special Hand #1: Wild Royal Flush"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "club_extra")
+    pokerCard1.innerText = "A"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "heart_extra")
+    pokerCard2.innerText = "2"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "Q"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "2"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "K"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "A hand containing A, K, Q, J and T that is also a flush & contains 1+ deuces."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 11. Store 4 Deuces
+
+    var pokerHandsView = document.getElementById("poker_hand_type11")
+    var pokerLabel = document.getElementById("poker_label11")
+    var pokerDescription = document.getElementById("poker_desc11")
+
+    pokerLabel.innerHTML = "Special Hand #2: Four Deuces"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "2"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "club_extra")
+    pokerCard2.innerText = "2"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "heart_extra")
+    pokerCard3.innerText = "2"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "2"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "K"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "A four of a kind hand that specifically contains all four deuces."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 12. Store Five of a kind
+
+    var pokerHandsView = document.getElementById("poker_hand_type12")
+    var pokerLabel = document.getElementById("poker_label12")
+    var pokerDescription = document.getElementById("poker_desc12")
+
+    pokerLabel.innerHTML = "Special Hand #3: Five of a Kind"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "2"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "club_extra")
+    pokerCard2.innerText = "T"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "spade_extra")
+    pokerCard3.innerText = "T"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "club_extra")
+    pokerCard4.innerText = "2"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "heart_extra")
+    pokerCard5.innerText = "2"
+    pokerHandsView.appendChild(pokerCard5)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "Contains between 1 and 3 deuces, where the other cards all have the same rank."
+    pokerDescription.appendChild(pokerHand_description)
+
+
+}
+
+function deucesHands() {
+
+    // 1. TWO PAIR to TRIPS
+
+    var beforeHand = document.getElementById("deuces_before0")
+    var afterHand = document.getElementById("deuces_after0")
+    var pokerDescription = document.getElementById("deuces_text0")
+    var pokerLabel_before = document.getElementById("deuces_before_label0")
+    var pokerLabel_after = document.getElementById("deuces_after_label0")
+
+    pokerLabel_before.innerHTML = "BEFORE: Two Pair"
+    pokerLabel_after.innerHTML = "AFTER: Three of a Kind"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "heart_extra")
+    pokerCard1.innerText = "8"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "spade_extra")
+    pokerCard2.innerText = "3"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "3"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "7"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "diamond_extra")
+    pokerCard5.innerText = "8"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "heart_extra")
+    pokerCard6.innerText = "8"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "spade_extra")
+    pokerCard7.innerText = "3"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "club_extra")
+    pokerCard8.innerText = "3"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "spade_extra")
+    pokerCard9.innerText = "7"
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "diamond_extra")
+    pokerCard10.style.backgroundColor = 'gold'
+    pokerCard10.innerText = "2"
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE ONE</span> In the before hand we have 'Two Pair' of 8's and 3's. In the after hand, we replace the 8 of diamonds, leaving us with one pair of 3's and a wild card. The best rank that the wild card can take on is another 3, turning our hand into 'Three of a Kind'. The suit that the wild card takes on doesn't matter."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 2. TWO PAIR to BOAT
+
+    var beforeHand = document.getElementById("deuces_before1")
+    var afterHand = document.getElementById("deuces_after1")
+    var pokerDescription = document.getElementById("deuces_text1")
+    var pokerLabel_before = document.getElementById("deuces_before_label1")
+    var pokerLabel_after = document.getElementById("deuces_after_label1")
+
+    pokerLabel_before.innerHTML = "BEFORE: Two Pair"
+    pokerLabel_after.innerHTML = "AFTER: Full House"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "heart_extra")
+    pokerCard1.innerText = "8"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "spade_extra")
+    pokerCard2.innerText = "3"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "3"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "7"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "diamond_extra")
+    pokerCard5.innerText = "8"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "heart_extra")
+    pokerCard6.innerText = "8"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "spade_extra")
+    pokerCard7.innerText = "3"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "club_extra")
+    pokerCard8.innerText = "3"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "spade_extra")
+    pokerCard9.innerText = "2"
+    pokerCard9.style.backgroundColor = 'gold'
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "diamond_extra")
+    pokerCard10.innerText = "8"
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE TWO</span> This is the same starting hand as before, except this time we replace the non-paired card. The best rank that the wild card can now take on is either another 3 or 8, turning our hand into 'Full House'. There is no extra payout for having 8-8-8-3-3 over 3-3-3-8-8. Again, the suit of the wild card doesn't matter."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 3. TRIPS + DEUCE to FOUR OF A KIND
+
+    var beforeHand = document.getElementById("deuces_before2")
+    var afterHand = document.getElementById("deuces_after2")
+    var pokerDescription = document.getElementById("deuces_text2")
+    var pokerLabel_before = document.getElementById("deuces_before_label2")
+    var pokerLabel_after = document.getElementById("deuces_after_label2")
+
+    pokerLabel_before.innerHTML = "BEFORE: Three of a Kind"
+    pokerLabel_after.innerHTML = "AFTER: Four of a Kind"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "heart_extra")
+    pokerCard1.innerText = "8"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "spade_extra")
+    pokerCard2.innerText = "3"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "3"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "spade_extra")
+    pokerCard4.innerText = "7"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "diamond_extra")
+    pokerCard5.innerText = "2"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "heart_extra")
+    pokerCard6.innerText = "8"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "spade_extra")
+    pokerCard7.innerText = "3"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "club_extra")
+    pokerCard8.innerText = "3"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "spade_extra")
+    pokerCard9.innerText = "2"
+    pokerCard9.style.backgroundColor = 'gold'
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "diamond_extra")
+    pokerCard10.innerText = "2"
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE THREE</span> Our starting hand contains a pair of 3's and a deuce. From EX 1, we know this is 'Three of a Kind'. When we replace a non-paired card with another deuce, the rank of this new deuce becomes a 3 as well. We now have 'Four of a Kind'."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 4. 4 TO A STRAIGHT to STRAIGHT
+
+    var beforeHand = document.getElementById("deuces_before3")
+    var afterHand = document.getElementById("deuces_after3")
+    var pokerDescription = document.getElementById("deuces_text3")
+    var pokerLabel_before = document.getElementById("deuces_before_label3")
+    var pokerLabel_after = document.getElementById("deuces_after_label3")
+
+    pokerLabel_before.innerHTML = "BEFORE: One Pair"
+    pokerLabel_after.innerHTML = "AFTER: Straight"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "heart_extra")
+    pokerCard1.innerText = "7"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "club_extra")
+    pokerCard2.innerText = "8"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "9"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "club_extra")
+    pokerCard4.innerText = "2"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "spade_extra")
+    pokerCard5.innerText = "K"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "heart_extra")
+    pokerCard6.innerText = "7"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "club_extra")
+    pokerCard7.innerText = "8"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "club_extra")
+    pokerCard8.innerText = "9"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "club_extra")
+    pokerCard9.innerText = "2"
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "spade_extra")
+    pokerCard10.innerText = "2"
+    pokerCard10.style.backgroundColor = 'gold'
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE FOUR</span> Our starting hand is close to a straight. The best the deuce can do is copy a rank we have and make us 'One Pair'. Still no payout. Replacing the K with a 2, our deuces can either make 'Three of a Kind' by copying the rank of a card we already have, or by making a straight, acting as a 9 & T. A straight pays more."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 5. 4 TO A STRAIGHT FLUSH to STRAIGHT FLUSH
+
+    var beforeHand = document.getElementById("deuces_before4")
+    var afterHand = document.getElementById("deuces_after4")
+    var pokerDescription = document.getElementById("deuces_text4")
+    var pokerLabel_before = document.getElementById("deuces_before_label4")
+    var pokerLabel_after = document.getElementById("deuces_after_label4")
+
+    pokerLabel_before.innerHTML = "BEFORE: One Pair"
+    pokerLabel_after.innerHTML = "AFTER: Straight Flush"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "club_extra")
+    pokerCard1.innerText = "7"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "club_extra")
+    pokerCard2.innerText = "8"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "9"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "club_extra")
+    pokerCard4.innerText = "2"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "spade_extra")
+    pokerCard5.innerText = "K"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "club_extra")
+    pokerCard6.innerText = "7"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "club_extra")
+    pokerCard7.innerText = "8"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "club_extra")
+    pokerCard8.innerText = "9"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "club_extra")
+    pokerCard9.innerText = "2"
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "spade_extra")
+    pokerCard10.innerText = "2"
+    pokerCard10.style.backgroundColor = 'gold'
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE FIVE</span> This is similar to EX 4 except that the suits that the deuces take on will matter. Since the non-deuce cards (except the K that gets replaced) are all suited, the 2 deuces will specifically take on ranks that complete the straight but also be clubs ie. 9 & T of clubs. We made a 'Straight Flush'."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 6. 4 TO A FLUSH to FLUSH
+
+    var beforeHand = document.getElementById("deuces_before5")
+    var afterHand = document.getElementById("deuces_after5")
+    var pokerDescription = document.getElementById("deuces_text5")
+    var pokerLabel_before = document.getElementById("deuces_before_label5")
+    var pokerLabel_after = document.getElementById("deuces_after_label5")
+
+    pokerLabel_before.innerHTML = "BEFORE: One Pair"
+    pokerLabel_after.innerHTML = "AFTER: Flush"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "club_extra")
+    pokerCard1.innerText = "3"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "club_extra")
+    pokerCard2.innerText = "8"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "club_extra")
+    pokerCard3.innerText = "9"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "club_extra")
+    pokerCard4.innerText = "2"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "spade_extra")
+    pokerCard5.innerText = "K"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "club_extra")
+    pokerCard6.innerText = "3"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "club_extra")
+    pokerCard7.innerText = "8"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "club_extra")
+    pokerCard8.innerText = "9"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "club_extra")
+    pokerCard9.innerText = "2"
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "spade_extra")
+    pokerCard10.innerText = "2"
+    pokerCard10.style.backgroundColor = 'gold'
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE SIX</span> This is similar to EX 5 in that the non-deuce cards (except the K) are all suited, however this time the first card is too far away to make a straight flush with the 2 deuces. That makes this closer to EX 4 in the choices that the deuces have, except it's 'Three of a Kind' vs a 'Flush'. A flush pays more."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 7. 3 DEUCES + NO PAIR to 5 of a KIND
+
+    var beforeHand = document.getElementById("deuces_before6")
+    var afterHand = document.getElementById("deuces_after6")
+    var pokerDescription = document.getElementById("deuces_text6")
+    var pokerLabel_before = document.getElementById("deuces_before_label6")
+    var pokerLabel_after = document.getElementById("deuces_after_label6")
+
+    pokerLabel_before.innerHTML = "BEFORE: Four of a Kind"
+    pokerLabel_after.innerHTML = "AFTER: Five of a Kind"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "2"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "spade_extra")
+    pokerCard2.innerText = "2"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "heart_extra")
+    pokerCard3.innerText = "2"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "heart_extra")
+    pokerCard4.innerText = "Q"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "heart_extra")
+    pokerCard5.innerText = "5"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "diamond_extra")
+    pokerCard6.innerText = "2"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "spade_extra")
+    pokerCard7.innerText = "2"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "heart_extra")
+    pokerCard8.innerText = "2"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "heart_extra")
+    pokerCard9.innerText = "Q"
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "diamond_extra")
+    pokerCard10.innerText = "Q"
+    pokerCard10.style.backgroundColor = 'gold'
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE SEVEN</span> Here we unveil a new poker hand that a wild card allows us to unlock. In our initial hand, all 3 deuces will copy either the Q or 5 to give us 'Four of a Kind'. When the 5 gets replaced by another Q, all deuces copy the Q and we now have 5 of them! Final hand is 'Five of a Kind'."
+    pokerDescription.appendChild(pokerHand_description)
+
+    // 8. 3 DEUCES + NO PAIR to 4 DEUCES
+
+    var beforeHand = document.getElementById("deuces_before7")
+    var afterHand = document.getElementById("deuces_after7")
+    var pokerDescription = document.getElementById("deuces_text7")
+    var pokerLabel_before = document.getElementById("deuces_before_label7")
+    var pokerLabel_after = document.getElementById("deuces_after_label7")
+
+    pokerLabel_before.innerHTML = "BEFORE: Four of a Kind"
+    pokerLabel_after.innerHTML = "AFTER: Four Deuces"
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "2"
+    beforeHand.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "spade_extra")
+    pokerCard2.innerText = "2"
+    beforeHand.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "heart_extra")
+    pokerCard3.innerText = "2"
+    beforeHand.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "heart_extra")
+    pokerCard4.innerText = "Q"
+    beforeHand.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "heart_extra")
+    pokerCard5.innerText = "5"
+    beforeHand.appendChild(pokerCard5)
+
+    var pokerCard6 = document.createElement("div");
+    pokerCard6.classList.add("poker_card", "diamond_extra")
+    pokerCard6.innerText = "2"
+    afterHand.appendChild(pokerCard6)
+
+    var pokerCard7 = document.createElement("div");
+    pokerCard7.classList.add("poker_card", "spade_extra")
+    pokerCard7.innerText = "2"
+    afterHand.appendChild(pokerCard7)
+
+    var pokerCard8 = document.createElement("div");
+    pokerCard8.classList.add("poker_card", "heart_extra")
+    pokerCard8.innerText = "2"
+    afterHand.appendChild(pokerCard8)
+
+    var pokerCard9 = document.createElement("div");
+    pokerCard9.classList.add("poker_card", "heart_extra")
+    pokerCard9.innerText = "Q"
+    afterHand.appendChild(pokerCard9)
+
+    var pokerCard10 = document.createElement("div");
+    pokerCard10.classList.add("poker_card", "club_extra")
+    pokerCard10.innerText = "2"
+    pokerCard10.style.backgroundColor = 'gold'
+    afterHand.appendChild(pokerCard10)
+
+    var pokerHand_description = document.createElement("div")
+    pokerHand_description.innerHTML = "<span style='color:white'>EXAMPLE EIGHT</span> Lastly, we unveil a special poker hand unique to this game. Instead of replacing the 5 with another Q, we replace it with the last deuce. EX 7 says we still have five of a kind, but instead a bonus is paid out when you get all four deuces in one hand!"
+    pokerDescription.appendChild(pokerHand_description)
+
+}
+
+function all_hearts() {
+
+        // 1. Store all Hearts
+
+        var pokerHandsView = document.getElementById("heart_suit_all")
+
+    
+        var pokerCard1 = document.createElement("div");
+        pokerCard1.classList.add("poker_card", "heart_extra")
+        pokerCard1.innerText = "A"
+        pokerHandsView.appendChild(pokerCard1)
+    
+        var pokerCard2 = document.createElement("div");
+        pokerCard2.classList.add("poker_card", "heart_extra")
+        pokerCard2.innerText = "2"
+        pokerHandsView.appendChild(pokerCard2)
+    
+        var pokerCard3 = document.createElement("div");
+        pokerCard3.classList.add("poker_card", "heart_extra")
+        pokerCard3.innerText = "3"
+        pokerHandsView.appendChild(pokerCard3)
+    
+        var pokerCard4 = document.createElement("div");
+        pokerCard4.classList.add("poker_card", "heart_extra")
+        pokerCard4.innerText = "4"
+        pokerHandsView.appendChild(pokerCard4)
+    
+        var pokerCard5 = document.createElement("div");
+        pokerCard5.classList.add("poker_card", "heart_extra")
+        pokerCard5.innerText = "5"
+        pokerHandsView.appendChild(pokerCard5)
+
+        var pokerCard6 = document.createElement("div");
+        pokerCard6.classList.add("poker_card", "heart_extra")
+        pokerCard6.innerText = "6"
+        pokerHandsView.appendChild(pokerCard6)
+    
+        var pokerCard7 = document.createElement("div");
+        pokerCard7.classList.add("poker_card", "heart_extra")
+        pokerCard7.innerText = "7"
+        pokerHandsView.appendChild(pokerCard7)
+    
+        var pokerCard8 = document.createElement("div");
+        pokerCard8.classList.add("poker_card", "heart_extra")
+        pokerCard8.innerText = "8"
+        pokerHandsView.appendChild(pokerCard8)
+    
+        var pokerCard9 = document.createElement("div");
+        pokerCard9.classList.add("poker_card", "heart_extra")
+        pokerCard9.innerText = "9"
+        pokerHandsView.appendChild(pokerCard9)
+    
+        var pokerCard10 = document.createElement("div");
+        pokerCard10.classList.add("poker_card", "heart_extra")
+        pokerCard10.innerText = "T"
+        pokerHandsView.appendChild(pokerCard10)
+
+        var pokerCard11 = document.createElement("div");
+        pokerCard11.classList.add("poker_card", "heart_extra")
+        pokerCard11.innerText = "J"
+        pokerHandsView.appendChild(pokerCard11)
+    
+        var pokerCard12 = document.createElement("div");
+        pokerCard12.classList.add("poker_card", "heart_extra")
+        pokerCard12.innerText = "Q"
+        pokerHandsView.appendChild(pokerCard12)
+    
+        var pokerCard13 = document.createElement("div");
+        pokerCard13.classList.add("poker_card", "heart_extra")
+        pokerCard13.innerText = "K"
+        pokerHandsView.appendChild(pokerCard13)
+
+
+}
+
+function brain_food() {
+
+    // 1. Example Hand
+
+    var pokerHandsView = document.getElementById("example_hand")
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "4"
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "K"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "7"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "diamond_extra")
+    pokerCard4.innerText = "A"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "4"
+    pokerHandsView.appendChild(pokerCard5)
+
+    // 1. Combination #1 - Flush
+
+    var pokerHandsView = document.getElementById("example_hand1")
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "4"
+    pokerCard1.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "K"
+    pokerCard2.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "7"
+    pokerCard3.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "diamond_extra")
+    pokerCard4.innerText = "A"
+    pokerCard4.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "4"
+    pokerHandsView.appendChild(pokerCard5)
+
+    // 2. Combination #2 - Trips
+
+    var pokerHandsView = document.getElementById("example_hand2")
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "4"
+    pokerCard1.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "K"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "7"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "diamond_extra")
+    pokerCard4.innerText = "A"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "4"
+    pokerCard5.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard5)
+
+    // 3. Combination #3 - Quads
+
+    var pokerHandsView = document.getElementById("example_hand3")
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "4"
+    pokerCard1.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "K"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "7"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "diamond_extra")
+    pokerCard4.innerText = "A"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "4"
+    pokerCard5.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard5)
+
+    // 4. Combination #4 - Boat
+
+    var pokerHandsView = document.getElementById("example_hand4")
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "4"
+    pokerCard1.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "K"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "7"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "diamond_extra")
+    pokerCard4.innerText = "A"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "4"
+    pokerCard5.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard5)
+
+    // 5. Combination #5 - Fives
+
+    var pokerHandsView = document.getElementById("example_hand5")
+
+    var pokerCard1 = document.createElement("div");
+    pokerCard1.classList.add("poker_card", "diamond_extra")
+    pokerCard1.innerText = "4"
+    pokerCard1.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard1)
+
+    var pokerCard2 = document.createElement("div");
+    pokerCard2.classList.add("poker_card", "diamond_extra")
+    pokerCard2.innerText = "K"
+    pokerHandsView.appendChild(pokerCard2)
+
+    var pokerCard3 = document.createElement("div");
+    pokerCard3.classList.add("poker_card", "diamond_extra")
+    pokerCard3.innerText = "7"
+    pokerHandsView.appendChild(pokerCard3)
+
+    var pokerCard4 = document.createElement("div");
+    pokerCard4.classList.add("poker_card", "diamond_extra")
+    pokerCard4.innerText = "A"
+    pokerHandsView.appendChild(pokerCard4)
+
+    var pokerCard5 = document.createElement("div");
+    pokerCard5.classList.add("poker_card", "club_extra")
+    pokerCard5.innerText = "4"
+    pokerCard5.style.backgroundColor = 'gold'
+    pokerHandsView.appendChild(pokerCard5)
+
+    
 }

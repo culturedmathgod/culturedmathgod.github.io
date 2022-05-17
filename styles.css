@@ -3,13 +3,22 @@
     src: url('WorkSans-Regular.ttf');
 }
 
+body {
+    margin: 0;
+    background-color: #1e1e54;
+    grid-template-rows: 325px 200px;
+    gap: 0;
+    cursor: pointer;
+}
+
+/* Structure for the Header */
+
 .head {
     display: grid;
-    grid-template-rows: 60px 20px;
 }
 
 .heading {
-    padding-top: 15px;
+    padding: 15px;
     height: 40px;
     font-family: customFont;
     font-size: 25px;
@@ -20,148 +29,578 @@
     position: relative;
 }
 
-.instructions {
-    padding-bottom: 10px;
-    padding-top: 5px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+/* Loading Animation */
+
+
+/* SideBar Menu */
+
+.sidebar_menu {
+    all: initial;
+    position: fixed;
+    margin: 0px;
+    padding: 0px;
+    width: 320px;
+    height: 100vh;
+    left: -320px;
+    top: 0px;
+    color: rgb(30,30,84);
+    font-size: 18px;
     font-family: customFont;
-    font-size: 11px;
-    color: gold;
+    border-radius: 10px;
+    background: linear-gradient(rgb(240,237,238),rgb(226,252,239));
+    z-index: 10;
+    transition: all 0.3s linear;
 }
 
-.beginner {
-    padding-right: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: right;
-    position: relative
-}
-
-.beginnerNoHover {
-    padding-right: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: right;
-}
-
-.beginner:hover::after {
+.open_button {
+    all: initial;
+    left: 25px;
+    margin: 0px;
     position: absolute;
-    content: attr(data-tooltip);
-    transform: translateX(225px) translateY(280px);
-    background: silver;
-    width: 400px;
-    font-size: 12px;
-    padding: 1rem;
-    border-radius: 1rem;
-    color: #1e1e54; 
-    white-space: pre-line;
-    display: block;
-    z-index: 2;
+    font-size: 27px;
+    color: white;
+    opacity: 1;
 }
 
-.non_beginner {
-    padding-left: 10px;
+.close_button {
+    all: initial;
+    color: silver;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 25px;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    cursor: pointer;
+}
+
+.sidebar_header {
     display: flex;
+    justify-content: space-between;
+}
+
+.sidebar_title {
+    margin: 10px;
+    padding-left: 15px;
+    height: 50px;
+    font-size: 22px;
+    font-weight: bold;
+    display: grid;
     align-items: center;
     justify-content: left;
-    position: relative
+    user-select: none;
+    text-align: center;
 }
 
-.non_beginnerNoHover {
-    padding-left: 10px;
+.sidebar_menu_list {
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.sidebar_element {
+    padding: 10px;
+    padding-left: 20px;
+    margin: 0px;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.sidebar_element_bot {
+    position: fixed;
+    bottom: 0;
+    padding: 20px;
+    padding-left: 185px;
     display: flex;
     align-items: center;
-    justify-content: left;
+    justify-content: center;
+    text-align: center;
 }
 
-.non_beginner:hover::after {
-    position: absolute;
-    content: attr(data-tooltip);
-    transform: translateX(-225px) translateY(170px);
-    background: silver;
-    width: 400px;
-    font-size: 12px;
-    padding: 1rem;
-    border-radius: 1rem;
-    color: #1e1e54; 
-    white-space: pre-line;
-    display: block;
-    z-index: 2;
+.sidebar_element:hover {
+    padding-left: 30px;
+    background-color: rgb(211,211,211);
+    transition: all 0.2s linear;
 }
+
+#check {
+    display: none
+}
+
+#check:checked ~ .sidebar_menu {
+    left: 0px;
+}
+
+#check:checked ~ .open_button {
+    opacity: 0;
+}
+
+#check:checked ~ .close_button {
+    opacity: 1;
+}
+
+.open_button:hover,
+.settings:hover {
+    opacity: 0.5;
+}
+
+.close_button:hover {
+    color: rgb(30,30,84);
+}
+
+/* Settings */
+
+.settings {
+    all: initial;
+    right: 20px;
+    margin: 0px;
+    position: absolute;
+    font-size: 27px;
+    color: white;
+    opacity: 1;
+}
+
+#check_2 {
+    display: none
+}
+
+#overlay_settings {
+    position: fixed;
+    opacity: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+#overlay_settings.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+
+/* Modals for Sidebar Menu */
+
+.modal {
+    position: fixed;
+    top: 100px;
+    left: 400px;
+    transform: scale(0);
+    transition: 200ms ease-in-out;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: silver;
+    color: #1e1e54; 
+    font-family: customFont;
+    font-size: 12px;
+    width: 900px;
+    max-width: 80%;
+    z-index: 9;
+}
+
+.modal_settings {
+    all: initial;
+    position: fixed;
+    top: 0px;
+    top: 25%;
+    left: 36%;
+    transform: scale(0);
+    transition: 200ms ease-in-out;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: silver;
+    color: #1e1e54; 
+    font-family: customFont;
+    font-size: 12px;
+    width: 400px;
+    max-width: 80%;
+    z-index: 9;
+}
+
+.modal.active {
+    transform: scale(1);
+}
+
+.modal_header {
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid black;
+}
+
+.modal_header .title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.modal_header .close_modal {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.modal_body {
+    padding: 10px 15px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+#overlay {
+    position: fixed;
+    opacity: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+#overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Other elements for the Modals */
+
+.stats_table {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#stats_table td:nth-child(1) {
+    width: 200px;
+    text-align: left;
+    padding-left: 10px
+}
+
+#stats_table td:nth-child(2) {
+    width: 50px;
+    text-align: center;
+}
+
+#stats_table td:nth-child(3) {
+    width: 50px;
+    text-align: center;
+}
+
+#stats_table td:nth-child(4) {
+    width: 50px;
+    text-align: center;
+}
+
+#stats_table td {
+    height: 20px;
+    border: solid grey
+}
+
+.deuces_table {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#deuces_table td:nth-child(1) {
+    width: 150px;
+    text-align: left;
+    padding-left: 10px
+}
+
+#deuces_table td:nth-child(2) {
+    width: 80px;
+    text-align: left;
+}
+
+#deuces_table td:nth-child(3) {
+    width: 80px;
+    text-align: left;
+}
+
+#deuces_table td:nth-child(4) {
+    width: 180px;
+    text-align: left;
+}
+
+#deuces_table td {
+    height: 20px;
+}
+
+.deuces_header {
+    font-size: 16px;
+}
+
+.brainfood_table {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#brainfood_table td:nth-child(1) {
+    width: 200px;
+}
+
+#brainfood_table td:nth-child(2) {
+    width: 50px;
+    text-align: center;
+}
+
+#brainfood_table td:nth-child(3) {
+    width: 100px;
+    text-align: center;
+}
+
+#brainfood_table td:nth-child(4) {
+    width: 80px;
+    text-align: center;
+}
+
+#brainfood_table td:nth-child(5) {
+    width: 80px;
+    text-align: center;
+}
+
+#brainfood_table td:nth-child(6) {
+    width: 80px;
+    text-align: center;
+}
+
+#brainfood_table td:nth-child(7) {
+    width: 80px;
+    text-align: center;
+}
+
+#brainfood_table td:nth-child(8) {
+    width: 300px;
+    text-align: center;
+}
+
+#brainfood_table td {
+    height: 20px;
+    border: solid grey
+}
+
+
+/* Poker Hands Visual */
+
+.poker_hands_visual {
+    all: initial;
+    position: fixed;
+    padding: 0px;
+    margin: 0px;
+    border-radius: 0.5rem;
+    background-color: silver;
+    border-style: solid;
+    border-color: black;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.poker_hand_type {
+    padding: 5px;
+    margin: 2.5px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 15px 45px 60px;
+    justify-content: center;
+    align-items: center;
+    border-style: solid;
+    border-color: black;
+    background-color: grey;
+    border-radius: 0.5rem;
+}
+
+.poker_card {
+    margin: auto;
+    padding: 0px;
+    gap: 0;
+    height: 51px;
+    width: 36px;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    background:white;
+    user-select: none;
+    font-family: "customFont";
+    justify-content: center;
+    align-items: center;
+}
+
+.poker_hand_label {
+    grid-column: 1/7;
+    padding: 4px;
+    margin: 0px;
+    font-family: customFont;
+    font-size: 12px;
+    color: white;
+    display:flex;
+    justify-content: center;
+}
+
+.poker_hand_desc {
+    grid-column: 1/7;
+    padding: 4px;
+    margin: 0px;
+    font-family: customFont;
+    font-size: 12px;
+    color: #1e1e54;
+    display:flex;
+    text-align: center;
+    justify-content: center;
+    overflow-wrap: normal;
+}
+
+/* Deuces Hands Visual */
+
+.deuces_hands_visual {
+    all: initial;
+    position: relative;
+    padding: 0px;
+    margin: 0px;
+    display: grid;
+}
+
+.deuces_card{
+    display: grid;
+    grid-template-columns: 3fr 0.5fr 3fr 4fr;
+    height: 120px;
+}
+
+.deuces_hand_type {
+    padding: 5px;
+    margin: 5px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 1fr 3fr;
+    justify-content: center;
+    align-items: center;
+    border-style: solid;
+    border-color: black;
+    background-color: grey;
+    border-radius: 0.5rem;
+}
+
+.deuces_hand_label {
+    grid-column: 1/7;
+    padding: 4px;
+    margin: 0px;
+    font-family: customFont;
+    font-size: 12px;
+    color: white;
+    display:flex;
+    justify-content: center;
+}
+
+.deuces_text {
+    padding: 5px;
+    margin: 5px;
+    margin-left: 20px;
+    font-family: customFont;
+    font-size: 12px;
+    color: #1e1e54;
+    display: grid;
+    text-align: left;
+    align-items: center;
+    justify-content: center;
+    overflow-wrap: normal;
+    border-style: solid;
+    border-color: black;
+    background-color: grey;
+    border-radius: 0.5rem;
+}
+
+.arrow {
+    color: #1e1e54;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hearts in Basic Info */
+
+.heart_suit_all {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* Brain Food example */
+
+.brainfood_example {
+    width: 200px;
+    display: grid;
+    position: relative;
+}
+
+.example_hand {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Top Container is split into the main table, a swappable section for extra hands/solver and graph of your progress IF IN PRO MODE*/
 
 .top_container {
     display: grid;
+    margin: 0px;
     grid-template-columns: 400px 600px 400px;
     justify-content: space-between;
 }
 
-/* Top Container is split into the main table, a swappable section for extra hands and the solver and graph of your progress*/
-
 .table_container {
-    margin: 0px;
-    padding: 10px;
-    background-color: #1e1e54;
+    margin: 10px;
+    padding: 0px;
     font-family: customFont;
     width: 400px;
     position: relative;
+    color: white
 }
 
-.table_containerNoHover {
-    margin: 0px;
-    padding: 10px;
-    background-color: #1e1e54;
-    font-family: customFont;
-    width: 400px;
-    position: relative;
-}
+/* Payout Table */
 
-.table_container:hover::after {
-    position: absolute;
-    content: attr(data-tooltip);
-    transform: translateX(494px) translateY(-294px);
-    background: silver;
-    width: 400px;
-    font-size: 12px;
-    padding: 1rem;
-    border-radius: 1rem;
-    color: #1e1e54; 
-    white-space: pre-line;
-    display: block;
-    z-index: 2;
-}
-
-td:nth-child(1) {
+#table_container td:nth-child(1) {
     width: 200px;
     text-align: left;
 }
 
-td:nth-child(2) {
+#table_container td:nth-child(2) {
     width: 100px;
     text-align: right;
 }
 
-td:nth-child(3) {
-    width: 50px;
-    text-align: right;
-}
-
-td:nth-child(4) {
-    width: 50px;
-    text-align: center;
-    visibility: hidden;
-}
-
-td {
-    color: white;
+#table_container td {
     height: 20px
 }
+
+/* Solver Display */
 
 .solver_section {
     margin: 0px;
     padding: 0px;
     display: grid;
     grid-template-rows: repeat(5, 1fr);
+    color: white
 }
 
 .solver_hand {
@@ -175,7 +614,6 @@ td {
 
 .EVtitle {
     font-family: customFont;
-    color: white;
     font-weight: bold;
     display: grid;
     align-items: center;
@@ -184,44 +622,19 @@ td {
 
 .EVvalue {
     font-family: customFont;
-    color: white;
     font-style: italic;
     display: grid;
     align-items: center;
     justify-content: center;
 }
 
-.chart_container {
-    height: 300px;
-    width: 600px;
-}
+/* Graph */
 
 .graph_container {
     padding: 0px;
     margin: 0px;
-    position: relative
-}
-
-.graph_containerNoHover {
-    padding: 0px;
-    margin: 0px;
-    position: relative
-}
-
-.graph_container:hover::after {
-    position: absolute;
-    content: attr(data-tooltip);
-    transform: translateX(-535px) translateY(-270px);
-    background: silver;
-    width: 400px;
-    font-size: 12px;
-    font-family: customFont;
-    padding: 1rem;
-    border-radius: 1rem;
-    color: #1e1e54; 
-    white-space: pre-line;
-    display: block;
-    z-index: 2;
+    position: relative;
+    visibility: hidden;
 }
 
 .hands {
@@ -230,30 +643,24 @@ td {
     width: 60px;
 }
 
-body {
-    margin: 0;
-    background-color: #1e1e54;
-    grid-template-rows: 325px 200px;
-    gap: 0;
-    cursor: pointer;
-}
-
 /* Main Hand */
 
 .game_area {
     display: grid;
-    grid-template-columns: 1fr 3fr 1fr;
+    grid-template-columns: 2fr 5fr 2fr;
 }
 
 .main_hand {
     display: grid;
     margin: 10px;
     padding: 40px;
+    background-color: rgb(66,126,96);
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: 1px 170px;
     border-radius: 7rem;
     justify-content: center;
     align-items: center;
+
 }
 
 .slot {
@@ -298,14 +705,6 @@ body {
     pointer-events: none;
 }
 
-/* Flip effects */
-/*.cardFront,
-.cardBack {
-    position: absolute;
-    backface-visibility: hidden;
-    transform: rotateY(180deg);
-}*/
-
 /* Extra Hands */
 
 .extra_hand_area {
@@ -344,16 +743,54 @@ body {
 
 .hand_type_extra {
     grid-column: 1/6;
-    padding: 4px;
+    padding: 0px;
     margin: 0px;
     font-family: customFont;
     font-size: 12px;
-    color: white;
+    border-radius: 2rem;
     display:flex;
     justify-content: center;
 }
 
 /* Settings for the Game */
+
+.game_start_switch {
+    padding: 10px;
+    margin: 10px;
+    background-color: silver;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-size: 25px;
+    font-family: customFont;
+    user-select: none;
+    height: 100px;
+    width: 200px;
+    text-align: center;
+}
+
+.game_settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.music_volume_switch,
+.table_switch {
+    padding: 10px;
+    margin: 10px;
+    background-color: rgb(66,126,96);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-family: customFont;
+    user-select: none;
+}
 
 .extra_hands_switch {
     padding: 10px;
@@ -370,10 +807,10 @@ body {
     position: relative;
 }
 
-.solver_switchNoHover {
+.stats_switch {
     padding: 10px;
     margin: 10px;
-    background-color: #ef402e;
+    background-color: grey;
     border-radius: 1rem;
     display: flex;
     align-items: center;
@@ -385,11 +822,10 @@ body {
     position: relative;
 }
 
-.instructions_switch,
-.music_volume_switch {
+.bg_mode {
     padding: 10px;
     margin: 10px;
-    background-color: rgb(66,126,96);
+    background-color: #1e1e54;
     border-radius: 1rem;
     display: flex;
     align-items: center;
@@ -398,42 +834,36 @@ body {
     font-size: 18px;
     font-family: customFont;
     user-select: none;
-}
-
-.solver_switch:hover::after {
-    position: absolute;
-    content: attr(data-tooltip);
-    transform: translateX(575px) translateY(-120px);
-    background: silver;
-    width: 400px;
-    font-size: 12px;
-    font-family: customFont;
-    padding: 1rem;
-    border-radius: 1rem;
-    color: #1e1e54; 
-    white-space: pre-line;
-    display: block;
-    z-index: 2;
-}
-
-.poker_hands_view,
-.solver_switch {
-    padding: 10px;
-    margin: 10px;
-    background-color: #ef402e;
-    border-radius: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 18px;
-    font-family: customFont;
-    user-select: none;
-    position: relative;
 }
 
 /* Metrics for the Game */
+
+.stats_setting_basic {
+    display: none
+}
+
+.stats_setting_pro {
+    display: none
+}
+
 .round_indicator,
+.best_decision_indicator_button {
+    padding: 10px;
+    margin: 10px;
+    background-color: silver;
+    border-radius: 1rem;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    color: #1e1e54;
+    font-size: 18px;
+    font-family: customFont;
+    user-select: none;
+    position: relative;
+}
+
+.total_score,
+.round_score,
 .best_decision_streak,
 .initial_luck,
 .final_luck,
@@ -442,7 +872,7 @@ body {
     margin: 10px;
     background-color: silver;
     border-radius: 1rem;
-    display: flex;
+    display: grid;
     align-items: center;
     justify-content: center;
     color: #1e1e54;
@@ -450,6 +880,48 @@ body {
     font-family: customFont;
     user-select: none;
     position: relative;
+}
+
+.best_decision_tooltip {
+    visibility: hidden;
+    position: fixed;
+    background: silver;
+    top: 33%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 300px;
+    font-size: 12px;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: white; 
+    display: grid;
+    grid-template-rows: 20px 60px 20px 60px 20px 60px;
+    z-index: 2;
+    opacity: 0;
+}
+
+.actual_hand_body,
+.person_hand_body,
+.top_body {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: 250px;
+    position: relative;
+    margin: 0 auto;
+}
+
+.actual_hand_title,
+.person_hand_title,
+.top_title {
+    text-align: center;
+}
+
+final_metric {
+    text-align: center
+}
+
+.best_decision_indicator:hover .best_decision_tooltip {
+    visibility: visible;
 }
 
 /* Pictures for Images */
@@ -549,3 +1021,181 @@ body {
     background-size: 24px 24px;
     color: #ef402e;
 }
+
+/* Tooltips 
+
+.instructions {
+    padding-bottom: 10px;
+    padding-top: 5px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    font-family: customFont;
+    font-size: 11px;
+    color: gold;
+}
+
+.poker_tips_slot {
+    padding-right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative
+}
+
+.poker_hands_slot {
+    padding-right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.beginner {
+    padding-right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative
+}
+
+.non_beginner {
+    padding-left: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative
+}
+
+.solver_details {
+    padding-left: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative
+}
+
+.poker_hands_slotNoHover {
+    padding-right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative
+}
+
+.beginnerNoHover {
+    padding-right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.non_beginnerNoHover {
+    padding-left: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.solver_detailsNoHover {
+    padding-left: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative
+}
+
+.beginner:hover::after {
+    position: fixed;
+    content: attr(data-tooltip);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: silver;
+    width: 400px;
+    font-size: 12px;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
+    z-index: 2;
+}
+
+.non_beginner:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(-225px) translateY(170px);
+    background: silver;
+    width: 400px;
+    font-size: 12px;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
+    z-index: 2;
+}
+
+.solver_details:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(-500px) translateY(250px);
+    background: silver;
+    width: 400px;
+    font-size: 12px;
+    font-family: customFont;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
+    z-index: 2;
+}
+
+.graph_containerNoHover {
+    padding: 0px;
+    margin: 0px;
+    position: relative
+}
+
+.graph_container:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(-535px) translateY(-270px);
+    background: silver;
+    width: 400px;
+    font-size: 12px;
+    font-family: customFont;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
+    z-index: 2;
+}
+
+.table_containerNoHover {
+    margin: 0px;
+    padding: 10px;
+    background-color: #1e1e54;
+    font-family: customFont;
+    width: 400px;
+    position: relative;
+}
+
+.table_container:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    transform: translateX(494px) translateY(-294px);
+    background: silver;
+    width: 400px;
+    font-size: 12px;
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #1e1e54; 
+    white-space: pre-line;
+    display: block;
+    z-index: 1;
+}
+
+ */

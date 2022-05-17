@@ -14,123 +14,888 @@
         <title>Deuces Wild</title>
 
         <script src="script.js" type="module"></script>
+        <script src="https://kit.fontawesome.com/832c081ebd.js" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 
         <div id="heading" class="heading">
-            <h2>Welcome to Deuces Wild</h2>
-        </div>
 
-        <div class="instructions">
-            <div id="beginner" class="beginner" data-html="true" data-tooltip="Are you ready to become a great Deuces Wild player? Maybe the best ever? Wait... you're saying you've never played before? Ah don't worry, I got you covered. We'll go through basic gameplay first, then talk strategy.&#xa; 
-            1. Hit 'enter' to start the first round. You'll be dealt 5 random cards. &#xa;
-            2. Select which ones to hold and which ones to fold (get rid of). Click the cards with either your mouse or the '1' to '5' keys. Gold cards are the ones you choose to hold.&#xa;
-            3. Hit 'enter' again to lock in your choice. New cards from the remaining deck will replace non-gold cards.&#xa;
-            4. Each hand costs one point to play. Payouts for qualifying hands will earn you points. See those qualifying hands on the table to the left.&#xa;
-            5. Check our your metrics on the bottom right to see if you got lucky, if you made the best decision, and to see how strong your starting hand was. Also, check out the graph on the top right for a visual of overall performance.&#xa;
-            6. Hit 'enter' again to start up the next round with a fresh deck!&#xa;
-            Which ones should you hold and which ones should you fold? Put your cursor over the table on the left for a guide. Also hover over the 'Solver Details' button for a cheat sheet. Pro tip:&#xa;
-            A. Deuces count as 'wild cards', hence the name of the game. They count for any card and any suit that best improves your hand. You'll always want to hold those!&#xa;
-            B. If you want to see multiple iterations of your decision, enable the 'Extra Hands' button below">Cursor here if you're new</div>
-            
-            <div id ="non_beginner" class="non_beginner" data-html="true" data-tooltip="Instructions below:&#xa;
-            1. Hit the 'enter' key to start the round, lock in your hand, and start the following round.&#xa;
-            2. To select what to hold/fold, click on the cards with your mouse or use the '1' to '5' keys. The gold cards will be held. &#xa;
-            3. Hit the 's' key to activate the solver mid-round.&#xa;
-            4. Enable 'Extra Hands' for 8 more iterations.&#xa;
-            5. Graph on the right shows your: expected score given you make the best decision, luck metric with gold dots compared to actual EV, and actual score. The bars represent the round scores.">Cursor here if you're not</div>
+            <input type="checkbox" id="check">
+            <div class="open_button" id="open_button">
+                <label for="check">
+                    <i class="fa fa-bars"></i>
+                </label>
+            </div>
+
+            <div class="sidebar_menu">
+
+                <div class="sidebar_header">
+                    <div class="sidebar_title">Deuces Wild Helpdesk</div>
+                    <div class="close_button" id="close_button">
+                        <label for="check">
+                            <i class="fa fa-times"></i>
+                        </label>
+                    </div>
+                </div>
+
+                <ul class ="sidebar_menu_list">
+                    <li><div class="sidebar_element" data-modal-target="#modal1">How to Play for Beginners</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal2">Basic Info</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal4">Payouts</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal5">Poker Hand Visuals</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal3">How Wild Deuces Work</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal6">Brain Food</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal10">Stats</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal7">The Solver</div></li>
+                    
+                    <hr>
+                    <li><div class="sidebar_element" data-modal-target="#modal8">How to Play for Pros</div></li>
+                    <hr>
+                    
+                    <li><div class="sidebar_element" data-modal-target="#modal11">Terminology & Acronyms</div></li>
+                    <li><div class="sidebar_element" data-modal-target="#modal12">FAQ</div></li>
+                    <div class="sidebar_element_bot"></i></div>
+                </ul>
+            </div>
+
+            <div class="title"><h2>Welcome to Deuces Wild</h2></div>
+
+            <input type="checkbox" id="check">
+            <div class="settings" id="settings">
+                <label for="check_2">
+                    <i class="fa fa-gear" data-modal-target="#modal0"></i>
+                </label>
+            </div>
+
         </div>
 
     </head>
 
     <body>
 
+        <div id="overlay"></div>
+        <div id="overlay_settings"></div>
+
+        <div class="modal modal_settings" id="modal0">
+            <div class="modal_header">
+                <div class="title">Settings</div>
+                <button data-close-button class="close_modal" id="settings_close">&times;</button>
+            </div>
+            <div class="modal_body">
+                <div id="extra_hands_switch" class="extra_hands_switch">Extra Hands Disabled</div>
+                <div id="music_volume_switch" class="music_volume_switch">Music Enabled</div>
+                <div id="stats_switch" class="stats_switch">Statistics - NONE Mode</div>
+                <div id="table_switch" class="table_switch">Payout Table Enabled</div>
+                <div id="bg_mode" class="bg_mode">Classic Mode</div>
+            </div>
+        </div>
+
+        <div class="modal" id="modal1">
+            <div class="modal_header">
+                <div class="title">How to Play for Beginners</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                Are you ready to become a great Deuces Wild player? Maybe the best ever? 
+                Wait... you're saying you've never played before? 
+                You don't even know what a deck of cards look like?!
+                Ah don't worry then, I got you covered. 
+                Let's first go through the objective of the game, how a full round works, sprinkle in some visual cues, then talk strategy. Hopefully that sounds good with you!<br><br>
+
+                WARNING: there is a lot of skill and luck involved in this game. Your goal is to make the best decisions possible. That's it. Simple, right? Understand that even if you make great decisions, you can still get unlucky.
+                But it works in reverse too - even if you don't make good decisions, you can get lucky! That's the fun nature of card games. Wishing you good choices and all the luck ...<br>
+
+                <ol>
+                    <li>Each round starts when you hit the 'enter' key or the 'Start Round' button on the screen.</li>
+                    <li>You will be given 5 random cards from a shuffled deck. If you don't know what cards are in a deck, see the 'Basic Info' section from the menu.</li>
+                    <li>Select which ones to keep by either using the '1' to '5' keys or by clicking on them. These helds cards will turn gold.</li>
+                    <li>Hit the 'enter' key again or the 'Lock in Hand' button to keep the gold cards and have the others replaced from the deck.</li>
+                    <li>Once all the non-held card have been replaced, you will be presented with your final hand. A payout may or may not be rewarded based on those 5 cards. 
+                        See the payout table on the screen or check out the 'Basic Info' section from the menu for details.
+                        For explanations on how to make each of those hands, see the 'Payouts' section.</li>
+                    <li>Finally, hit the 'enter' key or the "Start New Round' button to shuffle all cards back into the deck to start a new round.</li>
+                </ol>
+
+                There are many scenarios that you are likely to encounter early on that may puzzle you, 
+                so as a beginner just try out the game a few times with the basic steps above as your guide and then hop over to the menu whenever something comes up. 
+                There's a ton of features for you to explore in the menu and settings, but first you'll need to get a grip on how to play to maximize the use of them. <br><br>
+
+                For advice, examples and strategy, see 'Brain Food' <br><br>
+
+                Wishing you many deuces!
+
+            </div>
+        </div>
+
+        <div class="modal" id="modal2">
+            <div class="modal_header">
+                <div class="title">Basic Info</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                The information below will not teach you how to be a good Deuces Wild player. 
+                It is instead meant as a guide to learn about the key pieces of information in a deck of cards, how they pertain to this game, the rules, and the actions you can take.
+                <ol>
+                    <li>There are 52 cards in a standard deck. The deck is divided into 4 equal groups which we call 'suits'. 
+                        These are clubs, hearts, diamonds and spades. Each suit contains 13 cards. 13 hearts + 13 spades + 13 clubs + 13 diamonds = a full 52 card deck.
+                        The 13 cards in each suit are: Ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q and K. As an example, below are all the hearts in a deck: <br>
+                        <div id="heart_suit_all" class="heart_suit_all"></div>
+                        The latter 3 cards are more commonly referred to as the (J)ack, (Q)ueen and (K)ing.</li><br>
+                    <li>For the purposes of this game, no suit is better than another (a flush of spades does not pay more than a flush of diamonds). Likewise, (almost) no card value is better than another (three of a kind with Aces does not pay more than three of a kind with Kings).
+                    There are 2 exceptions to when card value actually matters: one example will be covered in the 'Payouts' section and the other is covered in the point below.</li><br>
+                    <li>The '2' card in each suit, also known informally as the deuce card, acts like a wild card in this game. 
+                        That means that it will automatically become any value and any suit that most improves your hand in the payout table.
+                    More on this in the 'How Wild Deuces Work' section.</li><br>
+                    <li>Each round costs one point to play.</li><br>
+                    <li>You are allowed to hold as many cards as you want before locking in your choice. That means you can hold all 5, hold onto nothing, and everything in between.</li><br>
+                    <li>Each final hand will meet the definition of only one specific payout. Even if your hand may look like it qualifies for more than one payout, only the top payout will be rewarded. Again, see 'Payouts' for more details.</li><br>
+                    <li>You can change the color palette of the game by going into the Settings or hitting the 't' key.</li><br>
+                    <li>Instead of one final hand, you can enable 9 total final hands to be given out.
+                        This means that after the cards you choose not to hold are replaced the first time, those replacement cards are added back into the deck, shuffled, and another set of replacements cards are dealt.
+                        The process repeats itself 9 total times, each costing you one point.
+                        This can only be enabled (1) before a round starts and (2) by clicking the 'e' key or going into the Settings menu.
+                        This option should only be used by experienced players.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="modal" id="modal3">
+            <div class="modal_header">
+                <div class="title">How Wild Deuces Work</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+
+                <div class="deuces_header">THEORY</div><br>
+                In regular poker games, the cards you're most excited to see are the Royal ones: the Ace, King, Queen, Jack and Ten.
+                They have the best potential to make the strongest hands possible.
+                In this game, you're instead hoping to see the deuce card. 
+                Sure, the strongest hand in this game doesn't include them, but deuces offer you a get-out-of-jail card. 
+                If you imagine a few of the starting hands you could possibly receive while keeping in mind the concept of connectedness from the 'Payouts' section, some will be well connected and offer solid prospects, however too many will be very disconnected leaving you with little hope for a single point.
+                Just one deuce changes all that! 
+                It wouldn't even care what the other 4 cards are.<br><br>
+                We'll talk more about this in the 'Brain Food' section, but each hand has an 'expected value' (used interchangeably with expected payoff or 'value').
+                When you lock in a given hand, there can be thousands of combinations of cards that can fill in the spots you didn't hold. 
+                Imagine taking the payout from all those scenarios and finding the average. 
+                That is what expected value is.
+                See the table below. 
+                It hopefully illustrates the power of deuces in the worst case scenario i.e. the remaining cards in your initial hand are all disconnected and therefore dropped. 
+                <br><br>
+                <div id="deuces_table" class="deuces_table">
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>Number of Deuces</td>
+                                <td>Likelihood</td>
+                                <td>Value</td>
+                                <td>Odds</td>
+                            </tr>
+                            <tr>
+                                <td>ZERO</td>
+                                <td>66%</td>
+                                <td>0.33</td>
+                                <td>2 out of every 3 rounds</td>
+                                
+                            </tr>
+                            <tr>
+                                <td>ONE</td>
+                                <td>30%</td>
+                                <td>1</td>
+                                <td>3 out of every 10 rounds</td>
+                                
+                            </tr>
+                            <tr>
+                                <td>TWO</td>
+                                <td>4%</td>
+                                <td>3</td>
+                                <td>1 out of every 25 rounds</td>
+                                
+                            </tr>
+                            <tr>
+                                <td>THREE</td>
+                                <td>0.2%</td>
+                                <td>15</td>
+                                <td>1 out of every 550 rounds</td>
+                                
+                            </tr>
+                            <tr>
+                                <td>FOUR</td>
+                                <td>~0%</td>
+                                <td>200</td>
+                                <td>1 out of every 54,000 rounds</td>
+                                
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+                <br>
+                Remember that you pay one point to play each hand. 
+                With only one deuce, you are expected to breakeven!
+                No other singular card can do that for you.
+                Any additional deuces in your hand just rockets your potential upwards. 
+                Then imagine what value the deuces would hold if you had 2 or more other connected cards to pair with it.
+                Lastly, look at how pitiful your chances are of getting a point with no deuces and no connectedness.
+                I hope you rarely land in such situations!
+                <br><br>
+                <div class="deuces_header">APPLICATION</div><br>
+                The rest of this section is dedicated to examples of how replacing a non-deuce card in your hand with a deuce will change the final ranking of your hand.
+                Note that the deuce won't actually change into the best card for you, but will be computed in the background as if it were that best card:
+                <br><br>
+                <div class="deuces_hands_visual">
+                    <div id="deuces_card0" class="deuces_card">
+                        <div id="deuces_before0" class="deuces_hand_type"><div id="deuces_before_label0" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after0" class="deuces_hand_type"><div id="deuces_after_label0" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text0" class="deuces_text"></div>
+                    </div>
+                    <div id="deuces_card1" class="deuces_card">
+                        <div id="deuces_before1" class="deuces_hand_type"><div id="deuces_before_label1" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after1" class="deuces_hand_type"><div id="deuces_after_label1" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text1" class="deuces_text"></div>
+                    </div>
+                    <div id="deuces_card2" class="deuces_card">
+                        <div id="deuces_before2" class="deuces_hand_type"><div id="deuces_before_label2" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after2" class="deuces_hand_type"><div id="deuces_after_label2" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text2" class="deuces_text"></div>
+                    </div>
+                    <div id="deuces_card3" class="deuces_card">
+                        <div id="deuces_before3" class="deuces_hand_type"><div id="deuces_before_label3" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after3" class="deuces_hand_type"><div id="deuces_after_label3" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text3" class="deuces_text"></div>
+                    </div>
+                    <div id="deuces_card4" class="deuces_card">
+                        <div id="deuces_before4" class="deuces_hand_type"><div id="deuces_before_label4" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after4" class="deuces_hand_type"><div id="deuces_after_label4" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text4" class="deuces_text"></div>
+                    </div>
+                    <div id="deuces_card5" class="deuces_card">
+                        <div id="deuces_before5" class="deuces_hand_type"><div id="deuces_before_label5" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after5" class="deuces_hand_type"><div id="deuces_after_label5" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text5" class="deuces_text"></div>
+                    </div>
+                    <div id="deuces_card6" class="deuces_card">
+                        <div id="deuces_before6" class="deuces_hand_type"><div id="deuces_before_label6" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after6" class="deuces_hand_type"><div id="deuces_after_label6" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text6" class="deuces_text"></div>
+                    </div>
+                    <div id="deuces_card7" class="deuces_card">
+                        <div id="deuces_before7" class="deuces_hand_type"><div id="deuces_before_label7" class="deuces_hand_label"></div></div>
+                        <div class="arrow" id="arrow"><label for="check"><i class="fa fa-arrow-right-long"></i></label></div>
+                        <div id="deuces_after7" class="deuces_hand_type"><div id="deuces_after_label7" class="deuces_hand_label"></div></div>
+                        <div id="deuces_text7" class="deuces_text"></div>
+                    </div>
+                    
+                </div>
+                
+
+
+            </div>
+        </div>
+
+        <div class="modal" id="modal4">
+            <div class="modal_header">
+                <div class="title">Payouts</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                The table on the beginning screen contains the rewards when a certain hand is made.
+                For visual representations of the explanations below, please visit the section 'Poker Hand Visuals'.
+
+                <br><br><div class="deuces_header">FUNDAMENTALS</div><br>
+
+                There are 3 core elements that differentiate poker hands from one another: 
+                how connected the cards are by rank, how connected the cards are by suit, and how many copies of the same rank appear.
+                <ul>
+                    <li>
+                        When we speak of the ranks being connected, we are referring to the 'straightness' of a hand. 
+                        In other words, do the 5 cards in your hand make a consecutive pattern.
+                        For example, if your hand contained a 5, 6, 7, 8 and 9 then your hand would qualify for the payout of a Straight!
+                        If your hand had only 4 consecutive cards like 5, 6, 7 and 8, but the last card was a 3, then your hand wouldn't have enough straightness to qualify for a Straight and thus earn 0 points.<br><br>
+                        The lowest straight is the hand of A-2-3-4-5, while the highest straight is of T-J-Q-K-A. 
+                        You'll note that the Ace plays a special role in being both the low end and the high end of the ranks depending on however you need it.
+                    </li><br>
+                    <li>
+                        Speaking of all cards contributing, the same goes for the connectedness by suit element. 
+                        If your hand contained a 4, 8, K, A and 3 but they all had the heart suit, then you would receive the reward for a Flush. 
+                        If the 4 was instead a diamond, then no flush points would be received. 
+                    </li><br>
+                    <li>
+                        Lastly, reptition by rank is rewarded but only if you have at least 3 copies in your hand.
+                        Having only 2 copies of one card does not earn any points on its own.
+                        Faving 3 copies of the same card qualifies for a Three of a Kind payout and 4 copies of the same card earns the Four of a Kind payout."
+                    </li>
+                </ul>
+                <div class="deuces_header">COMBINATIONS</div><br>
+
+                You can collect greater rewards in this game by making hands that have the traits of more than one of the above descriptions.
+                You will no longer get paid with the fundamental elements above that make the hand, but will instead ascend to another hand strength and payout category altogether. For example:
+                <ol>
+                    <li>
+                        When you make a Straight you get 2 points. When you make a Flush you get 2 points. 
+                        When your hand qualifies for both at the same time, say a hand with the 5-6-7-8-9 all diamonds, your hand upgrades to a Straight Flush! With this hand, you earn 9 points.    
+                    </li><br>
+                    <li>
+                        If your hand is specifically the highest straight combination and a flush at the same time, you have made a Royal Flush (T, J, Q, K and A are considered 'Royal' cards) and are rewarded with the highest payout of 800 points!
+                    </li><br>
+                    <li>
+                        If your hand contains a Three of a Kind of one rank (1 point on its own) and a Pair of another rank (0 points on its own), like three 4's and two 5's, then you'd make a 'Full House' which earns you 3 points.
+                    </li>
+                </ol>
+                
+                <div class="deuces_header">SPECIAL HANDS</div><br>
+                The above discussion has completely disregarded the fact that a wild card exists in this game that can take on the form of any suit or rank. 
+                Placing a wild card into a hand that would usually earn 0 points can help elevate it to something of value. 
+                It can also can take something of low value and make it into something worth significantly more.
+                Please see the 'How Wild Deuces Work' for an exhaustive list of how a deuce can transform one hand into another. 
+                In this section, I will cover all 3 examples where the introduction of a deuce into a hand actually creates something new entirely:
+                <ol>
+                    <li>
+                        You might notice that making a Royal Flush is extremely difficult. If you think about it, there are only 4 ways to make them. 
+                        With the introduction of a wild card, it becomes significantly easier to make. 
+                        You would now only need to collect 4 Royal cards of the same suit and then have a deuce in your hand to complete the criteria.
+                        You could also imagine having even more deuces in your hand and thus needing even less suited Royal cards.
+                        The creation of a Royal Flush in this way (with at least one wild card) creates a new distinction between 'natural' and 'wild' Royal Flushes. 
+                        A Natural Royal Flush (NRF) is a Royal Flush that contains no deuces. It earns the full 800 max payout. 
+                        A Wild Royal Flush (WRF), our first special hand, is one that contains at least one deuce. You earn 25 points for making this hand. 
+                    </li><br>
+                    <li>
+                        A special Four of a Kind was created just for the spirit of the game. If you collect all 4 deuces in one hand, you get a nice payout of 200 points!
+                    </li><br>
+                    <li>
+                        Without wild cards, you could at most have 4 copies of the same rank. 
+                        With the introduction of wild cards being any rank, it is now possible to create a Five of a Kind.
+                        This would simply be a hand which contains only 2 different ranks: the deuces and one of any other rank. 
+                        For example: 2-2-5-5-2 or 2-3-3-3-3. 
+                        These are two different hands that would earn 15 points for the Five of a Kind payout, the final special hand, and last to be discussed from the entire payout table that earns points. 
+                    </li><br>
+                </ol>
+            </div>
+        </div>
+
+        <div class="modal" id="modal5">
+            <div class="modal_header">
+                <div class="title">Poker Hand Visuals</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+                <div id="poker_hands_visual" class="poker_hands_visual">
+                    <div id="poker_hand_type0" class="poker_hand_type"><div id="poker_label0" class="poker_hand_label"></div><div id="poker_desc0" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type1" class=" poker_hand_type"><div id="poker_label1" class="poker_hand_label"></div><div id="poker_desc1" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type2" class=" poker_hand_type"><div id="poker_label2" class="poker_hand_label"></div><div id="poker_desc2" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type3" class=" poker_hand_type"><div id="poker_label3" class="poker_hand_label"></div><div id="poker_desc3" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type4" class=" poker_hand_type"><div id="poker_label4" class="poker_hand_label"></div><div id="poker_desc4" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type6" class=" poker_hand_type"><div id="poker_label6" class="poker_hand_label"></div><div id="poker_desc6" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type7" class=" poker_hand_type"><div id="poker_label7" class="poker_hand_label"></div><div id="poker_desc7" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type8" class=" poker_hand_type"><div id="poker_label8" class="poker_hand_label"></div><div id="poker_desc8" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type9" class=" poker_hand_type"><div id="poker_label9" class="poker_hand_label"></div><div id="poker_desc9" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type10" class=" poker_hand_type"><div id="poker_label10" class="poker_hand_label"></div><div id="poker_desc10" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type11" class=" poker_hand_type"><div id="poker_label11" class="poker_hand_label"></div><div id="poker_desc11" class="poker_hand_desc"></div></div>
+                    <div id="poker_hand_type12" class=" poker_hand_type"><div id="poker_label12" class="poker_hand_label"></div><div id="poker_desc12" class="poker_hand_desc"></div></div>
+                </div>
+        </div>
+
+        <div class="modal" id="modal6">
+            <div class="modal_header">
+                <div class="title">Brain Food</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                It would be nice to aim for a natural royal flush every single round. 
+                You might even be tempted to think that a master at this game is one who is able to generate the most NRFs overall.
+                Quite often, the 5 cards you are initially dealt will instead whisper to you "forget the royal flush. There's another less valuable, yet attainable hand that we should go for."
+                In those times, you might want to think about listening to that voice. 
+                It's not just about maximum points. You need to think about how likely certain combiantions of cards are to come.
+                <br><br>
+                Thinking about the fundamental components, are your initial cards leading you to a specific hand or does it have the opportunity to become a number of hands. 
+                Perhaps it isn't leading you to either. 
+                If it's guiding you somewhere, how many more cards do you need to improve that hand to the requirements that give a payout?
+                How many cards in the deck are available for you to in order to hit your hand? 
+                Combining the previous factors, is it worth chasing that hand given the payoff when you hit?
+                There's a mathematical idea underlying all this talk, but I don't want to get into the raw calculations because at this point it's unnecessary. 
+                I'd rather have you get a feel for the game first.
+                Regardless, this is one way that you could think about the game. 
+                Here's an example. Say you have the following hand: 
+                <br><br>
+                <div id="brainfood_example" class="brainfood_example">
+                    <div id="example_hand" class="example_hand"></div>
+                </div>
+                <br>
+                Take a minute to figure out what the 'sane' combinations of cards you could actually hold are. I've come up with 4.
+                <ul>
+                    <li>
+                        The first option is to hold all 4 diamonds and shoot for a plain flush. You need one more card and would earn 2 points.
+                    </li>
+                    <li>The second option is to hold the pair of 4's. 
+                        With this combination, you are aiming for many hands: three of a kind, quads, full house and five of a kind. 
+                        Each require varying numbers of cards from 1 more to make a three of a kind, to 3 more to make five of a kind. 
+                        These payouts range from 1 to 15.
+                    </li>
+                    <li>The third option is to hold the Ace and King and primarily aim for a wild or natural royal flush. 
+                        You need 3 specific cards to hit the natural royal but you get a reward of 800 for that slim chance.
+                        The wild royal flush is more realistic since you can get help from the 4 wild cards, and thus the payoff shrinks to 25. 
+                        There are still many other hands you can make with this holding. 
+                        You can make a plain straight, a plain flush (much harder now that you've dropped 2 diamonds), three of a kind, four of a kind and even full house.
+                    </li>
+                    <li>
+                        The last option is to hold the 4 and 7 of diamonds. This is nearly identical to the third option, except instead of the NRF and WRF potential, you instead are going for a straight flush.
+                        You're also a little more likely to make a straight in this scenario than in option 3.
+                    </li>
+                </ul>
+                Below is a table roughly outlining the thought process above for options (1) and (2):
+                <br><br>
+
+                <div id="brainfood_table" class="brainfood_table">
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>Selection</td>
+                                <td>Option</td>
+                                <td>Potential Hand</td>
+                                <td>Payoff</td>
+                                <td># of Cards To Hit</td>
+                                <td># of Chances to Hit</td>
+                                <td>Total Cards to help</td>
+                                <td>Description of Cards to help</td>
+                            </tr>
+                            <tr>
+                                <td><div id="example_hand1" class="example_hand"></div></td>
+                                <td>#1</td>
+                                <td>Flush</td>
+                                <td>2</td> 
+                                <td>1</td>
+                                <td>1</td>
+                                <td>12</td>
+                                <td>8 other diamonds, 4 deuces</td>
+                            </tr>
+                            <tr>
+                                <td><div id="example_hand2" class="example_hand"></div></td>
+                                <td>#1</td>
+                                <td>Three of a Kind</td>
+                                <td>1</td> 
+                                <td>1</td>
+                                <td>3</td>
+                                <td>6</td>
+                                <td>2 4's, 4 deuces</td>
+                            </tr>
+                            <tr>
+                                <td><div id="example_hand3" class="example_hand"></div></td>
+                                <td>#2</td>
+                                <td>Four of a Kind</td>
+                                <td>5</td> 
+                                <td>2</td>
+                                <td>3</td>
+                                <td>6</td>
+                                <td>2 4's, 4 deuces</td>
+                            </tr>
+                            <tr>
+                                <td><div id="example_hand4" class="example_hand"></div></td>
+                                <td>#3</td>
+                                <td>Full House</td>
+                                <td>3</td> 
+                                <td>3</td>
+                                <td>3</td>
+                                <td>Rest of the Deck</td>
+                                <td>(1) Either a pair of any other non-deuce card + a deuce, (2) a 4 with a pair of any other non-deuce card or (3) three of a kind of any other non-deuce card</td>
+                            </tr>
+                            <tr>
+                                <td><div id="example_hand5" class="example_hand"></div></td>
+                                <td>#4</td>
+                                <td>Five of a Kind</td>
+                                <td>15</td> 
+                                <td>3</td>
+                                <td>3</td>
+                                <td>6</td>
+                                <td>2 4's, 4 deuces</td>
+                            </tr>
+                      
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <br>
+
+                I'm not saying this is how you need to think about every single hand in order to come to the best or even a good decision. 
+                There are tools in this game that assist your intuition like the solver and the 'best decision' indicator.
+                More than that, the same scenarios pop up over and over again. 
+                That will provide more than enough practice to drill home what decision are best. 
+                The main point is that the moment you lock in more cards, you narrow the payouts you can attain. Are those remaining payouts worth it? 
+            </div>
+        </div>
+
+        <div class="modal" id="modal7">
+            <div class="modal_header">
+                <div class="title">The Solver</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                The solver will display the top 5 hold/fold combinations in order from best value to worst. 
+                White cards are to be held, grey cards are to be discarded. The 6 columns of numbers to the right of each hand combination are:
+                <ol>
+                    <li>
+                        EV = the expected value of the decision. 
+                        This number represents the average payout given all the combination of cards left in the deck that can replace the cards you choose not to hold. 
+                        This value doesn't consider the cost per hand. 
+                        This means that any EV less than 1 is expected to lose you points on average, and any EV greater than 1 is expected to earn your points.
+                    </li><br>
+                    <li>
+                        P(win) = the probability that you will make a hand with a payout greater than 0
+                    </li><br>
+                    <li>
+                        P(Prem.) = the probability that you will make a premium hand. 
+                        The premium hands are: a straight flush, wild royal flush, five of a kind, four deuces or a natural royal flush.
+                    </li><br>
+                    <li>
+                        The last 3 columns represent the top 3 most likely hands you will make that earn a payout of at least 1.
+                        For example, say these last 3 columns were: P(Trips) = 30, P(Str.) = 10 and P(Quads) = 8. 
+                        That means that the most likely qualifying hand that you will make is a Three of a Kind. 
+                        You will make this hand 30% of the time. 
+                        The next likely qualifying hand you will make is a Straight with a 10% likelihood. 
+                        The third most likely qualifying hand you make is a Four of a Kind with an 8% likelihood.        
+                    </li>
+                </ol>
+                Click the 's' key to activate me in the middle of a round.
+            </div>
+        </div>
+
+        <div class="modal" id="modal8">
+            <div class="modal_header">
+                <div class="title">How to Play for Pros</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                This section highlights all the extra features and tools that someone with experience (or an addiction) would want at their disposal. 
+                For basic game instructions, see the 'How to Play for Beginners' tab.<br>
+                
+                <ol>
+                    <li>If you want the outcome of your decisions to run closer to your true EV, there's an option where you can enable extra hands. 
+                        This would essentially repeat the replacement stage of the game 8 more times using your initial locked-in hand. 
+                        To use this feature, go to the settings icon at the top right of the screen and click the 'disable extra hands' button to enable it or click the 'e' key.
+                        This setting can only be changed before a round has started, and not during.
+                    </li><br>
+                    <li>
+                        A solver tool has been built, and can be accessed by hitting the 's' key.
+                        It ranks the top 5 choices that could be made with the random 5 cards given according to their EV. 
+                        It also provides numerous other figures to illuminate how strong each choice is and where it derives its value from.
+                        This tool can only be accessed when in a round, but not during one.
+                        See 'The Solver' section for more details.
+                    </li><br>
+                    <li>
+                        To track the cumulative EV of your decisions against the luck of your draw, go to the settings icon and click on the 'statistics disabled' button twice to activate the 'pro' version of the stats.
+                        In this mode, you can also see special indicators on the graph (yellow dots) that are created each round either above the x-axis when your actual draw > EV or vice versa. 
+                        The white line is your actual score, whereas the pink line is the cumulative EV. Green and red bars depict the actual score per round.
+                    </li>
+                </ol>
+
+            </div>
+        </div>
+
+        <div class="modal" id="modal10">
+            <div class="modal_header">
+                <div class="title">Statistics</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+
+                <div id="stats_table" class="stats_table">
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>FEATURES</td>
+                                <td>NONE</td>
+                                <td>BASIC</td>
+                                <td>PRO</td>
+                            </tr>
+                            <tr>
+                                <td>Round Number</td>
+                                <td>X</td>
+                                <td>X</td>
+                                <td>X</td>
+                            </tr>
+                            <tr>
+                                <td>Last Round Score</td>
+                                <td>X</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Total Score</td>
+                                <td>X</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Graph of Round Scores</td>
+                                <td></td>
+                                <td>X</td>
+                                <td>X</td>
+                            </tr>
+                            <tr>
+                                <td>Graph of Total Score</td>
+                                <td></td>
+                                <td>X</td>
+                                <td>X</td>
+                            </tr>
+                            <tr>
+                                <td>Best Decision Streak</td>
+                                <td></td>
+                                <td>X</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Best Decision Percentage</td>
+                                <td></td>
+                                <td>X</td>
+                                <td>X</td>
+                            </tr>
+                            <tr>
+                                <td>Best Decision Indicator</td>
+                                <td>X</td>
+                                <td>X</td>
+                                <td>X</td>
+                            </tr>
+                            <tr>
+                                <td>Luck Indicator</td>
+                                <td>X</td>
+                                <td>X</td>
+                                <td>X</td>
+                            </tr>
+                            <tr>
+                                <td>Expected Total Score</td>
+                                <td></td>
+                                <td></td>
+                                <td>X</td>
+                            </tr>
+                            <tr>
+                                <td>Starting Hand Rank</td>
+                                <td></td>
+                                <td></td>
+                                <td>X</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <br><br><div class="deuces_header">NONE</div><br>
+                    For people who only want the necessary pieces of info.
+                    They appreciate a minimalistic setup, looking to just play some hands and assess progress in the simplest manner.
+                    With this option, you get: 
+                    <ul>
+                        <li>what the current round is</li>
+                        <li>what your current round and total results are</li>
+                        <li>a graphic that compares your decision to the best one you could've made</li>
+                    </ul>
+                <div class="deuces_header">BASIC</div><br>
+                    For those who have some experience under their belt and want to track their progress in more detail.
+                    They still don't want to be overwhelmed with crazy graphs and potentially confusing metrics.
+                    All the items from the NONE option are kept, with the following add-ons:
+                    <ul>
+                        <li>a line graph of your total score</li>
+                        <li>a bar graph of your round scores
+                            <ul>
+                                <li>green = positive score</li>
+                                <li>red = negative score</li>
+                                <li>no bar = score of 0</li>
+                            </ul>
+                        </li>
+                        <li>a counter that tracks how many best decisions you've made in a row</li>
+                        <li>an overall percentage of how many rounds that you made the best decision in</li>
+                    </ul>
+                <div class="deuces_header">PRO</div><br>
+                    This is the option for those who appreciate all the maths behind the scenes.
+                    They know that luck plays a huge part, and so they want to separate their actual results into what came from skill and what came from luck. 
+                    From BASIC, we remove the round and total scores, as well as the streak of best decisions. 
+                    In their place, we add:
+                    <ul>
+                        <li>a luck indicator that compares the EV of your decision to the EV of the outcome</li>
+                        <li>a line graph for the EV of the best decision</li>
+                        <li>dots on the graph to track historical luck
+                            <ul>
+                                <li>a dot on the +10 horizontal line means you got lucky that round</li>
+                                <li>a dot on the -10 horizontal line means that you got unlucky that round</li>
+                                <li>no dot means that the outcome was fair</li>
+                            </ul>
+                        </li>
+                    </ul>
+                Click the 'g' key to cycle through the stats option you want in game.
+            </div>
+        </div>
+
+        <div class="modal" id="modal11">
+            <div class="modal_header">
+                <div class="title">Terminology & Acronyms</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                <ul>
+                    <li>
+                        Random: unpredictable. 
+                        When the initial 5 cards are dealt, every card has an equal chance of being included in your hand. 
+                        No card is more likely to show up than another at any point given the information (cards) you have received thus far.
+                    </li><br>
+                    <li>
+                        Suited: a collection of cards that each have the same suit.
+                    </li><br>
+                    <li>
+                        Deuce or wild card: the 2 in the deck. 
+                        All four of them (2 of spades, 2 of hearts, 2 of clubs, 2 of diamonds) when in your hand will count as any suit or value that best improves the payout of your hand. 
+                    </li><br>
+                    <li>
+                        Premium hand: the top 5 hands in the payout table. 
+                        The each have less than a 1% chance of being made.
+                    </li><br>
+                    <li>
+                        Risk to reward tradeoff: comparing the likelihood of something happening to the payoff if it does occur.
+                        Given many possible decisions, choose the one where the payoff seems most worth it given the likelihood of that event.
+                        Finding out if risk is worth the reward requires intense mathemtical calculations.
+                        For a cheat sheet, see the 'Solver' section
+                    </li><br>
+                    <li>
+                        T: the card with the value of 10.
+                    </li><br>
+                    <li>
+                        J: the Jack in the deck.
+                    </li><br>
+                    <li>
+                        Q: the Queen in the deck.
+                    </li><br>
+                    <li>
+                        K: the King in the deck.
+                    </li><br>
+                    <li>
+                        WRF: wild royal flush. A royal flush where at least one deuce is used.
+                    </li><br>
+                    <li>
+                        NRF: natural royal flush. A royal flush where no deuces are used.
+                    </li><br>
+                    <li>
+                        4D: four deuces.
+                    </li><br>
+                </ul>
+            </div>
+        </div>
+
+        <div class="modal" id="modal12">
+            <div class="modal_header">
+                <div class="title">FAQ</div>
+                <button data-close-button class="close_modal">&times;</button>
+            </div>
+            <div class="modal_body">
+                <ol>
+                    <li>
+                        Q: What does the T stand for when it's on a card?<br>
+                        A: The T stand for the value of 10.
+                    </li><br>
+                    <li>
+                        Q: What suit does the wild '2' count for?<br>
+                        A: Any suit that best improves your hand. It will not change on the screen, but be factored into your overall hand in the background calculation.
+                        See 'How Wild Deuces Work'.
+                    </li><br>
+                    <li>
+                        Q: What value does the wild '2' count for?<br>
+                        A: Same answer as #2
+                    </li><br>
+                    <li>
+                        Q: Whenever I hit 'enter' or the "Start New Round" button, there's a bit of lag. Why is that?<br>
+                        A: There are some calculations running in the background that take 2-3 seconds to boot up a new round. 
+                        Please don't hit any other keys until the 5 cards have loaded!
+                    </li><br>
+                    <li>
+                        Q: How come my score keeps going down when the lowest payout is 0? Shouldn't my score at least stay the same or go higher?<br>
+                        A: There is a cost of one point each hand. You need a three of a kind to breakeven each hand, and stronger than it to have your total score increase
+                    </li><br>
+                    <li>
+                        Q: How do I know if i'm making the best decision?<br>
+                        A: The 'Best Decision' button will turn green after you locked in your hand to depict if you made the top choice. 
+                        It will turn orange if you made the 2nd to 5th best decision, and it will turn red if you made a choice outside the top 5.
+                        You can hover over this button to see what you chose vs what the best choice was.
+                        Alternatively, see 'The Solver' or the 'Brain Food' sections to help improve decision-making
+                    </li><br>
+                    <li>
+                        Q: How do I know if i'm getting lucky or not?<br>
+                        A: You need to enable the Statistics section in the settings menu found at the top right of the screen.
+                        In "Basic Mode" there is an indicator each round at the bottom right of your screen that tells you if you got lucky or unlucky.
+                        In "Pro Mode" a graphical indicator will show up in yellow each round. When the yellow dot appears above the x-axis, you got lucky. If it shows up at the bottom, you got unlucky.
+                        If it doesn't show up at all, then it was a 'fair' outcome. 
+                    </li><br>
+                    <li>
+                        Q: My 5 card hand looks like it qualifies for more than one payout. Why wasn't I rewarded for all of them?<br>
+                        A: If your hand looks to meet the criteria for many hands, only the highest payout will be rewarded.
+                        Also, the hand strengths are carefully designed so that any 5 card hand meets the criteria for one payout only. 
+                        See the 'Payout' section for more details.
+                    </li><br>
+                </ol>
+            </div>
+        </div>
+        
+
         <div class="top_container">
 
-            <div id="table_container" class="table_container" data-html="true" data-tooltip="Hopefully you're familiar with poker hands. If not, go ahead and search search those up and come back here straight away.&#xa;
-            On the very left, you have all the different hands you can make. We've then added a few bonus hands into the mix. These are: (1) FOUR DEUCES i.e. the 4 jokers and (2) WILD ROYAL FLUSH which is a royal flush that contains one or more wild cards. Not all of these hands get rewarded. In the second column of the table we have the payouts for making each of these hands, all the way from 800 points for a NATURAL ROYAL FLUSH to 0 points for a hand with just a HIGH CARD.&#xa;
-            You should be aware that each hand you lock in, a total of 9 each round, will cost you one point! That means your hand needs to at least be as strong as a THREE OF A KIND to breakeven. Anything lower than that will cost you one point, but anything better is pure profit! Other notes:&#xa;
-            - Column 3 contains a tracker for the total number of times you have made each hand. At the very beginning of the game it will be all zeroes since you haven't made anything yet.&#xa;
-            - Column 4 contains a hidden indicator for how many of each hand type you made in the current round. Note: This will only show up, in bright yellow text, when a round is over.">
+            <div id="table_container" class="table_container">
 
                 <table>
                     <tbody>
                         <tr>
                             <td>NATURAL ROYAL FLUSH</td>
                             <td>800</td>
-                            <td id="nat_rf">0</td>
-                            <td id="inc_nat_rf" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>FOUR DEUCES</td>
                             <td>200</td>
-                            <td id="four_d">0</td>
-                            <td id="inc_four_d" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>WILD ROYAL FLUSH</td>
                             <td>25</td>
-                            <td id="wild_rf">0</td>
-                            <td id="inc_wild_rf" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>FIVE OF A KIND</td>
                             <td>15</td>
-                            <td id="fives">0</td>
-                            <td id="inc_fives" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>STRAIGHT FLUSH</td>
                             <td>9</td>
-                            <td id="sf">0</td>
-                            <td id="inc_sf" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>FOUR OF A KIND</td>
                             <td>5</td>
-                            <td id="quads">0</td>
-                            <td id="inc_quads" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>FULL HOUSE</td>
                             <td>3</td>
-                            <td id="boat">0</td>
-                            <td id="inc_boat" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>FLUSH</td>
                             <td>2</td>
-                            <td id="fl">0</td>
-                            <td id="inc_fl" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>STRAIGHT</td>
                             <td>2</td>
-                            <td id="str">0</td>
-                            <td id="inc_str" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>THREE OF A KIND</td>
                             <td>1</td>
-                            <td id="trips">0</td>
-                            <td id="inc_trips" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>TWO PAIRS</td>
                             <td>0</td>
-                            <td id="two_p">0</td>
-                            <td id="inc_two_p" class="increment">0</td>
                         </tr>
                         <tr>
                             <td>ONE PAIR</td>
                             <td>0</td>
-                            <td id="one_p">0</td>
-                            <td id="inc_one_p" class="increment">0</td>
                         </tr>
                         <tr>
-                            <td>HIGH CARD</td>
+                            <td>NONE OF THE ABOVE</td>
                             <td>0</td>
-                            <td id="hc">0</td>
-                            <td id="inc_hc" class="increment">0</td>
                         </tr>
                     </tbody>
                 </table>
@@ -160,13 +925,7 @@
 
             </div>
 
-
-            <div id="graph_container" class="graph_container" data-html="true" data-tooltip="1. Red and green bars represent your score each round. No bar means you scored 0 points.&#xa;
-            2. Your total score from all previous rounds will be tracked by the white line. Hover over the right most point on it to see your current score.&#xa;
-            3. When the solver feature is turned on, two extra lines will begin to populate the graph:&#xa;
-            -  a yellow line will track your EXPECTED score given you make the BEST decision each round. Differences between this line and your actual score can be explained by a combination of not making the best choices and/or by luck.&#xa;
-            - a pink line will track your EXPECTED score given the ACTUAL decisions you made. Differences between this line and your actual score are purely driven by luck!&#xa;
-            Tip: if the white and pink lines are really close, but the white and yellow aren't, that means you have room to make better decisions.">
+            <div id="graph_container" class="graph_container">
 
                 <div id="chart_container" class="chart_container">
                     <canvas id="myChart" width="100" height="80"></canvas>
@@ -180,7 +939,7 @@
                                     type: 'line',
                                     data: [0],
                                     borderColor: ['white'],
-                                    borderWidth: 1
+                                    borderWidth: 1.5
                                 },
                                 {
                                     label: 'Round Score',
@@ -188,22 +947,26 @@
                                     data: [0],
                                     borderColor: ['rgba(255, 99, 132, 0.2)'],
                                     backgroundColor: ['rgb(255, 99, 132)'],
-                                    borderWidth: 1,
+                                    borderWidth: 1.5,
                                     borderSkipped: false
                                 },
                                 {
                                     label: 'Expected Total',
                                     type: 'line',
                                     data: [0],
-                                    borderColor: ['rgb(255,105,180)'],
-                                    borderWidth: 1
+                                    borderColor: ['gold'],
+                                    borderWidth: 1.5,
+                                    borderDash: [10,5],
+                                    hidden: true
                                 },
                                 {
                                     label: 'Actual Luck',
                                     type: 'scatter',
                                     data: [0],
                                     borderColor: ['gold'],
-                                    borderWidth: 1
+                                    borderWidth: 1.5,
+                                    pointStyle: 'cross',
+                                    hidden: true
                                 }
                                 ]
                             },
@@ -237,7 +1000,6 @@
                 </div>
             </div>
 
-
         </div>
 
         <div class="game_area" id="game_area">
@@ -250,22 +1012,9 @@
                     <source src="elevator_music.mp3" type="audio/mpeg"/>
                 </audio>
 
-                <!-- Solver enable/disable option-->
+                <!-- Game Start-->
 
-                <div id="solver_switch" class="solver_switch" data-html="true" data-tooltip="Click the 's' key to activate me in the middle of a round i.e. initial hand has been dealt, but not locked in yet.&#xa;
-                The solver will display the top 5 hold/fold combinations in order from best to worst. White cards are to be held, grey cards are to be discarded. The 6 columns of numbers to the right of each hand combinations are:&#xa;
-                1. EV = the expected value. This number represents the average payout given all the combination of cards that can fill the empty slots. It doesn't account for cost. This means that any EV less than 1 is expected to lose you points on average.&#xa;
-                2. P(win) = the probability that you will make a qualifying hand i.e. it scores more than 0 points.&#xa;
-                3. P(SF+) = the probability that your hand will be a straight flush or better in the payout scale.&#xa;
-                The last 3 columns represent the TOP 3 most likely hands you will make that earn a payout of at least 1.&#xa;
-                For example, say these last 3 columns were: P(Trips) = 30, P(Str.) = 10 and P(Quads) = 8. That means that the most likely qualifying hand ythat you will make is be a THREE OF A KIND. You will make this hand 30% of the time. The next likely hand you will make is a STRAIGHT with a 10% likelihood. The third most likely hand you make is a FOUR OF A KIND with an 8% likelihood.">Solver Details</div>
-                <div id="instructions_switch" class="instructions_switch">Instructions Enabled</div>
-
-                <!-- Extra Hands enable/disable option-->
-
-                <div id="extra_hands_switch" class="extra_hands_switch">Extra Hands Disabled</div>
-                <div id="music_volume_switch" class="music_volume_switch">Music Enabled</div>
-                <div id="poker_hands_view" class="poker_hands_view">View Poker Hands</div>
+                <div id="game_start_switch" class="game_start_switch">START GAME</div>
 
             </div>
 
@@ -311,13 +1060,52 @@
 
             </div>
 
-            <div class="dead_space">
+            <div class="game_stats" id="game_stats">
 
-                <div id="round_indicator" class="round_indicator">Round: 0</div>
-                <div id="best_decision_streak" class="best_decision_streak">Streak of #1 Option: 0</div>
-                <div id="initial_luck" class="initial_luck">Starting Hand Rank: tbd</div>
-                <div id="final_luck" class="final_luck">Last Outcome: tbd</div>
-                <div id="perc_best_decision" class="perc_best_decision">Best Decision: tbd</div>
+                <!-- Sections for all Stat modes -->
+                <div id="stats_fixed" class="stats_fixed">
+
+                    <div id="round_indicator" class="round_indicator">Round: 0</div>
+
+                    <div id="best_decision_indicator" class="best_decision_indicator">
+                        <div id="best_decision_indicator_button" class="best_decision_indicator_button">
+                            Best Decision: Pending...
+                        </div>
+                        <div id="best_decision_tooltip" class="best_decision_tooltip">
+                            <div id="actual_hand_title" class="actual_hand_title">Initial Hand</div>
+                            <div id="actual_hand_body" class="actual_hand_body"></div>
+                            <div id="person_hand_title" class="person_hand_title">Your Decision</div>
+                            <div id="person_hand_body" class="person_hand_body"></div>
+                            <div id="top_title" class="top_title">Best Decision</div>
+                            <div id="top_body" class="top_body"></div>
+                        </div>
+                    </div>
+
+                    <div id="final_luck" class="final_luck">Last Outcome: TBD</div>
+
+                </div>
+
+                <!-- Sections specific to different Stat modes -->
+                <div class="stats_interchangeable">
+
+                    <div id="stats_setting_none" class="stats_setting_none">
+                        <div id="round_score" class="round_score">Round Score: TBD</div>
+                        <div id="total_score" class="total_score">Total Score: 0</div>
+                    </div>
+    
+    
+                    <div id="stats_setting_basic" class="stats_setting_basic">
+                        <div id="best_decision_streak" class="best_decision_streak">Streak of #1 Option: 0</div>
+                        <div id="perc_best_decision_1" class="perc_best_decision">Best Decision: TBD</div>
+                    </div>
+    
+    
+                    <div id="stats_setting_pro" class="stats_setting_pro">
+                        <div id="perc_best_decision_2" class="perc_best_decision">Best Decision: TBD</div>
+                        <div id="initial_luck" class="initial_luck">Starting Hand Rank: TBD</div>
+                    </div>
+
+                </div>
 
             </div>
 
